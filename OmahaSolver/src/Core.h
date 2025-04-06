@@ -1,0 +1,22 @@
+#pragma once
+
+#include <phevaluator.h>
+
+#include <array>
+#include <vector>
+#include <memory>
+#include <random>
+#include <bitset>
+#include <iostream>
+#include <unordered_map>
+
+using ui = unsigned int;
+using vec_ui = std::vector<ui>;
+
+using Card = phevaluator::Card;
+using Rank = phevaluator::Rank;
+
+using Hand = std::array<Card, 4>;
+using Board = std::vector<Card>;
+
+constexpr int totalHands = (52 * 51 * 50 * 49) / (4 * 3 * 2);
