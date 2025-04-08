@@ -1,0 +1,5 @@
+﻿  main.cpp
+F:\Programiranje\C++\Omaha_AOF_solver\Solver\src\Range.h(22,14): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+  (compiling source file 'src/main.cpp')
+  
+  App.vcxproj -> F:\Programiranje\C++\Omaha_AOF_solver\bin\Release-windows-x86_64\App\App.exe

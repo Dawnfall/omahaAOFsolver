@@ -1,5 +1,5 @@
 project "Solver"
-    kind "ConsoleApp"
+    kind "StaticLib"
     language "C++"
     cppdialect "C++20" --c++latest ??TODO??
     staticruntime "off"
@@ -21,7 +21,8 @@ project "Solver"
     
     includedirs
     {
-        "%{IncludeDirs.PHeval}",
+        "%{IncludeDirs.Solver}",
+        "%{IncludeDirs.PHeval}"
     }
 
     links
@@ -30,27 +31,28 @@ project "Solver"
     }
 
     filter "configurations:Debug"
-        libdirs 
-        {
-            "%{LibDirs.PHeval_d}"
-        }
-        links
-        {
-            "phevalplo4.lib"
-        }
-        defines "SOLVER_DEBUG"
-        runtime "Debug"
-        symbols "on"
+    libdirs 
+    {
+        "%{LibDirs.PHeval_d}"
+    }
+    links
+    {
+        "phevalplo4.lib"
+    }
+    defines "SOLVER_DEBUG"
+    runtime "Debug"
+    symbols "On"
 
-    filter "configurations:Release"
-        libdirs 
-        {
-            "%{LibDirs.PHeval_r}"
-        }
-        links
-        {
-            "phevalplo4.lib"
-        }    
-        defines "SOLVER_RELEASE"
-        runtime "Release"
-        optimize "on"
+filter "configurations:Release"
+    libdirs 
+    {
+        "%{LibDirs.PHeval_r}"
+    }
+    links
+    {
+        "phevalplo4.lib"
+    }    
+    defines "SOLVER_RELEASE"
+    runtime "Release"
+    symbols "Off"        -- Disable debugging symbols
+    optimize "Full"      -- Maximum optimization for deployment

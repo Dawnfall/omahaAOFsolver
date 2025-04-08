@@ -1,78 +1,94 @@
 #pragma once
 
-
 #include "Core.h"
 #include "Utils.h"
+#include "Solver.h"
 
 class Deck
 {
 public:
-	Deck() :
-		currentSize(52)
+	Deck(const std::unordered_set<int>& removedCards)
 	{
-		for (int i = 0; i < 52; ++i)
-		{
-			cards[i] = i;
-			cardIndexMap[i] = i;
+		m_count = 0;
+		for (int i = 0; i < 52; ++i) {
+			if (removedCards.find(i) == removedCards.end()) {
+				m_cards[m_count++] = i;
+			}
 		}
 	}
 
-	void add(int card)
+	void Add(int card)
 	{
-		if (cardIndexMap.find(card) == cardIndexMap.end())
-		{
-			cards[currentSize] = card;
-			cardIndexMap[card] = currentSize;
-			++currentSize;
-		}
+		m_cards[m_count++] = card;
 	}
 
 	void Remove(int card)
 	{
-		auto it = cardIndexMap.find(card);
-		if (it != cardIndexMap.end())
-		{
-			int index = it->second;
-			int lastCard = cards[currentSize - 1];
-			cards[index] = lastCard;
-			cardIndexMap[lastCard] = index;
-			--currentSize;
-			cardIndexMap.erase(it);
-		}
+		for (int i = 0; i < m_count; i++)
+			if (m_cards[i] == card)
+			{
+				m_cards[i] = m_cards[m_count - 1];
+				m_cards[m_count - 1] = card;
+				m_count -= 1;
+				return;
+			}
+
 	}
 
-	int getRandom()
+	void FillTurnAndRiver(Board& board)const
 	{
 		auto& randGen = Utils::GetRandomGen();
-		std::uniform_int_distribution<> dis(0, currentSize - 1);
-		int randomIndex = dis(randGen);
-		int card = cards[randomIndex];
-		Remove(card);
+		std::uniform_int_distribution<> dis1(0, m_count - 1);
+		std::uniform_int_distribution<> dis2(0, m_count - 2);
+
+		int first = dis1(randGen);
+		int second = dis2(randGen);
+
+		if (second >= first) {
+			second += 1;
+		}
+
+		board[3] = m_cards[first];
+		board[4] = m_cards[second];
+	}
+
+	int RemoveAt(int i)
+	{
+		int card = m_cards[i];
+		m_cards[i] = m_cards[m_count - 1];
+		m_cards[m_count - 1] = card;
+		m_count -= 1;
 		return card;
 	}
 
-	std::array<int, 4> dealFourCards()
+	int RemoveRandom()
 	{
-		std::array<int, 4> hand;
+		auto& randGen = Utils::GetRandomGen();
+		std::uniform_int_distribution<> dis(0, m_count - 1);
+		int randomIndex = dis(randGen);
+		return RemoveAt(randomIndex);
+	}
+
+	Hand DealFourCards()
+	{
+		Hand hand;
 		for (int i = 0; i < 4; ++i)
 		{
-			hand[i] = getRandom();
-			Remove(hand[i]);
+			hand[i] = RemoveRandom();
 		}
 		return hand;
 	}
 
 	void print() const
 	{
-		for (int i = 0; i < currentSize; ++i)
+		for (int i = 0; i < m_count; ++i)
 		{
-			std::cout << cards[i] << " ";
+			std::cout << m_cards[i] << " ";
 		}
 		std::cout << "\n";
 	}
 
 private:
-	std::array<int, 52> cards;
-	std::unordered_map<int, int> cardIndexMap; // Maps card ID to its index in the array
-	int currentSize = 0; // Tracks the current number of elements in the array
+	std::array<int, 52> m_cards;
+	int m_count = 0; // Tracks the current number of elements in the array
 };

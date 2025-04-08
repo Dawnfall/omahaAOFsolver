@@ -1,30 +1,19 @@
 #include "Utils.h"
 
-std::unique_ptr<std::mt19937> m_randGen = nullptr;
-
-std::mt19937& Utils::GetRandomGen()
+namespace Utils
 {
-	if (!m_randGen)
-	{
-		m_randGen = std::make_unique<std::mt19937>(std::random_device{}());
-	}
-	return *m_randGen;
-}
+	std::unique_ptr<std::minstd_rand> m_randGen = nullptr;
+	unsigned int NumberOfThreads = std::thread::hardware_concurrency();
+	//unsigned int NumberOfThreads = 1;
 
-
-bool Utils::Validate(const Hand& hand, Situation& sit)
-{
-	for (auto& card : hand)
+	std::minstd_rand& GetRandomGen()
 	{
-		for (const auto& h : sit.GetHands())
-			if (std::find(h.begin(), h.end(), card) != h.end())
-				return false;
-		if (std::find(sit.GetBoard().begin(), sit.GetBoard().end(), card) != sit.GetBoard().end())
-			return false;
-		if (std::find(sit.GetDeadCards().begin(), sit.GetDeadCards().end(), card) != sit.GetDeadCards().end())
-			return false;
+		if (!m_randGen)
+		{
+			m_randGen = std::make_unique<std::minstd_rand>(std::random_device{}());
+		}
+		return *m_randGen;
 	}
-	return true;
 }
 
 
