@@ -1,9 +1,0 @@
-﻿  Solver.cpp
-F:\Programiranje\C++\Omaha_AOF_solver\Solver\src\Range.h(22,14): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-  (compiling source file 'src/Solver.cpp')
-  
-F:\Programiranje\C++\Omaha_AOF_solver\Solver\src\Solver.cpp(118,18): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
-F:\Programiranje\C++\Omaha_AOF_solver\Solver\src\Solver.cpp(132,32): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
-F:\Programiranje\C++\Omaha_AOF_solver\Solver\src\Solver.cpp(139,22): warning C4018: '<': signed/unsigned mismatch
-F:\Programiranje\C++\Omaha_AOF_solver\Solver\src\Solver.cpp(143,18): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
-  Solver.vcxproj -> F:\Programiranje\C++\Omaha_AOF_solver\bin\Debug-windows-x86_64\Solver\Solver.exe

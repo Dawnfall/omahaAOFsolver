@@ -69,7 +69,7 @@
     </Link>
     <Lib>
       <AdditionalDependencies>phevalplo4.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\3rd\PHeval\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\3rd\PHeval\libs\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -95,27 +95,27 @@
     </Link>
     <Lib>
       <AdditionalDependencies>phevalplo4.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\3rd\PHeval\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\3rd\PHeval\libs\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="src\CardCode.h" />
     <ClInclude Include="src\Core.h" />
-    <ClInclude Include="src\Deck.h" />
-    <ClInclude Include="src\Node.h" />
+    <ClInclude Include="src\Data\Solution.h" />
+    <ClInclude Include="src\Data\SolverParams.h" />
+    <ClInclude Include="src\Data\ThreadData.h" />
+    <ClInclude Include="src\Data\WeightedHand.h" />
     <ClInclude Include="src\Position.h" />
-    <ClInclude Include="src\Range.h" />
-    <ClInclude Include="src\Situation.h" />
-    <ClInclude Include="src\Solution.h" />
-    <ClInclude Include="src\Solver.h" />
+    <ClInclude Include="src\Solver\Node.h" />
+    <ClInclude Include="src\Solver\PokerUtils.h" />
+    <ClInclude Include="src\Solver\Solver.h" />
+    <ClInclude Include="src\ThreadPool.h" />
     <ClInclude Include="src\Utils.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\Node.cpp" />
-    <ClCompile Include="src\Range.cpp" />
-    <ClCompile Include="src\Situation.cpp" />
-    <ClCompile Include="src\Solution.cpp" />
-    <ClCompile Include="src\Solver.cpp" />
+    <ClCompile Include="src\Data\Solution.cpp" />
+    <ClCompile Include="src\Solver\Node.cpp" />
+    <ClCompile Include="src\Solver\PokerUtils.cpp" />
+    <ClCompile Include="src\Solver\Solver.cpp" />
     <ClCompile Include="src\Utils.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

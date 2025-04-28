@@ -1,5 +1,5 @@
 project "App"
-    kind "ConsoleApp"
+    kind "WindowedApp"
     language "C++"
     cppdialect "C++20" --c++latest ??TODO??
     staticruntime "off"
@@ -7,7 +7,7 @@ project "App"
 
     targetdir ("%{wks.location}/bin/" .. outputDir .. "/%{prj.name}")
     objdir ("%{wks.location}/bin-int/" .. outputDir .. "/%{prj.name}")
-    
+
     files
     {
         "src/**.h",
@@ -23,22 +23,31 @@ project "App"
     {
         "%{IncludeDirs.Solver}",
         "%{IncludeDirs.App}",
-        "%{IncludeDirs.PHeval}"
+        "%{IncludeDirs.PHeval}",
+        "%{IncludeDirs.VCPKG}"
     }
 
     links
     {
-       "Solver"
+       "Solver",
+        "user32", 
+        "gdi32", 
+        "shell32"
     }
 
     filter "configurations:Debug"
         libdirs 
         {
-            "%{LibDirs.PHeval_d}"
+            "%{LibDirs.PHeval_d}",
+            "%{LibDirs.VCPKG_D}",
         }
         links
         {
-            "phevalplo4.lib"
+            "phevalplo4.lib",
+            "fltkd.lib",
+            "fltk_imagesd.lib",
+            "zlibd.lib",
+            "libpng16d.lib"
         }
         defines "SOLVER_DEBUG"
         runtime "Debug"
@@ -47,12 +56,17 @@ project "App"
     filter "configurations:Release"
         libdirs 
         {
-            "%{LibDirs.PHeval_r}"
+            "%{LibDirs.PHeval_r}",
+            "%{LibDirs.VCPKG_R}"
         }
         links
         {
-            "phevalplo4.lib"
-        }    
+            "phevalplo4.lib",
+            "fltk.lib",
+            "fltk_images.lib",
+            "zlib.lib",
+            "libpng16.lib"
+        }   
         defines "SOLVER_RELEASE"
         runtime "Release"
         optimize "on"

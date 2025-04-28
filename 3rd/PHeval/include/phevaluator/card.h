@@ -40,12 +40,13 @@ const static std::array<char, 4> suitReverseArray = {'c', 'd', 'h', 's'};
 
 class Card {
  public:
+
   Card() {}
-
   Card(int id) : id_(id) {}
-
-  Card(std::string name) {
-    if (name.length() < 2) {
+  Card(std::string name)
+  {
+    if (name.length() < 2) 
+    {
       // TODO: throw an exception here
     }
 
@@ -58,7 +59,8 @@ class Card {
 
   char describeSuit(void) const { return suitReverseArray[id_ % 4]; }
 
-  std::string describeCard(void) const {
+  std::string describeCard(void) const
+  {
     return std::string{describeRank(), describeSuit()};
   }
 
