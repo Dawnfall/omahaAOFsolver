@@ -27,4 +27,5 @@ workspace "Omaha AOF solver"
 
     include "Solver/solver_build.lua"
     include "App/app_build.lua"
+    include "Tests/tests_build.lua"
     --TODO: rename file

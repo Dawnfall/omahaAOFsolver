@@ -3,6 +3,7 @@
 
 #include "Constants.h"
 #include "Application.h"
+#include "Solver/PokerUtils.h"
 
 int WindowPanel::Render(Application* app)
 {
@@ -66,17 +67,6 @@ void WindowPanel::RenderSolverPanel(Application* app)
 	totalPlayerRadioButtons[2] = std::make_unique<RadioButtonUI>(m_cursor, Constants::el_height, Constants::el_height, false);
 	m_cursor.NextRow();
 
-	//***********
-	// Iterations
-
-	repeatIterLabel = std::make_unique<LabelUI>(m_cursor, 50, Constants::el_height, Constants::iterCount_label);
-	repeatIterInput = std::make_unique<InputUI>(m_cursor, 40, Constants::el_height, Constants::repeatIter_default);
-
-	perHandIterLabel = std::make_unique<LabelUI>(m_cursor, 50, Constants::el_height, Constants::perHandIter_label);
-	perHandIterInput = std::make_unique<InputUI>(m_cursor, 40, Constants::el_height, Constants::perHandIter_default);
-	m_cursor.NextRow();
-
-
 	//*************
 	// Solve Button
 	solveButton = std::make_unique<ButtonUI>(m_cursor, 50, Constants::el_height, Constants::solveButton_label, solve_button_callback, app);
@@ -95,11 +85,10 @@ void WindowPanel::RenderSolverPanel(Application* app)
 		infoLabel->SetText("Solving...");
 		});
 
-	app->OnSolveFinish.AddListener([this](Solution* sol) {
-		if (sol)
-			infoLabel->SetText(std::format("Iterations: {}\nper Hand: {}\ntime: {}s", sol->Iters, sol->PerHandIters,Application::GetInstance()->duration.count()));
-		else
-			infoLabel->SetText("No solution");
+	app->OnSolveFinish.AddListener([this]() {
+		Application* app = Application::GetInstance();
+		if (app->m_solverResult)
+			SetSolverInfo(*app->m_solverResult);
 		});
 }
 
@@ -136,18 +125,19 @@ void WindowPanel::RenderViewerPanel(Application* app)
 	m_cursor.NextRow();
 	nodeSelector = std::make_unique<NodeSelectorUI>(m_cursor, 90, 30, app, viewerTab);
 
-	m_cursor.SetStartPos(600, 35);
+	m_cursor.SetStartPos(700, 35);
 	m_cursor.spacingX = 10;
 	m_cursor.spacingY = 10;
 	m_cursor.Reset();
 	trainer = std::make_unique<TrainerUI>(m_cursor, 500, 300);
 
-	app->OnSolutionChange.AddListener([this, viewerTab](Solution* sol) {
-		if (sol)
+	app->OnSolutionChange.AddListener([this, viewerTab]() {
+		Application* app = Application::GetInstance();
+		if (app->m_solution)
 		{
-			phevaluator::Card c0(sol->Flop[0]);
-			phevaluator::Card c1(sol->Flop[1]);
-			phevaluator::Card c2(sol->Flop[2]);
+			phevaluator::Card c0(app->m_solution->Flop[0]);
+			phevaluator::Card c1(app->m_solution->Flop[1]);
+			phevaluator::Card c2(app->m_solution->Flop[2]);
 
 			boardCards[0]->SetText(c0.describeCard().substr(0, 1));
 			boardCards[0]->SetColor(RenderUtils::GetCardColor(c0));
@@ -165,21 +155,29 @@ void WindowPanel::RenderViewerPanel(Application* app)
 			boardCards[2]->SetText("");
 			boardCards[2]->SetColor(1, 1, 1);
 		}
-		scrollView->RefreshRange(nullptr);
-		nodeSelector->Refresh(sol, viewerTab, range_radio_callback);
+		scrollView->RefreshRange();
+		nodeSelector->Refresh(viewerTab);
 		});
 
-	app->OnRangeChange.AddListener([this](const std::vector<WeightedHand>* range) {
-		//TODO...apply filter
-		float aiCount = 0;
-		for (auto& weHand : *range)
-			if (weHand.Ev > 0)
-				aiCount += 1;
+	app->OnRangeChange.AddListener([this]() {
 
-		rangeTotalLabel->SetText("Total:       " + Utils::FormatFloatToNDecimal(aiCount / range->size(), 2));
+		Application* app = Application::GetInstance();
+
+		if (app->currentNode != -1)
+		{
+			float aiCount = 0;
+			for (int i = 0; i < PokerUtils::rangeSize; i++)
+			{
+				auto [hand, ev] = app->m_solution->GetHandAndEv(app->currentNode, i);
+				if (ev > 0)
+					aiCount += 1;
+			}
+			rangeTotalLabel->SetText("Total:       " + Utils::FormatFloatToNDecimal(aiCount / PokerUtils::rangeSize, 2));
+		}
+
 
 		trainer->SetNewHand();
-		scrollView->RefreshRange(range);
+		scrollView->RefreshRange();
 		});
 
 	viewerTab->end();
@@ -219,11 +217,6 @@ void WindowPanel::RenderOptionsPanel(Application* app)
 
 }
 
-void WindowPanel::range_radio_callback(Fl_Widget* widget, void* userData)
-{
-	std::string* action = static_cast<std::string*>(userData);
-	Application::GetInstance()->SetRange(*action);
-}
 
 void WindowPanel::solve_button_callback(Fl_Widget* widget, void* userData)
 {
@@ -237,12 +230,14 @@ void WindowPanel::load_button_callback(Fl_Widget* widget, void* userData)
 	Application* app = static_cast<Application*>(userData);
 	if (app)
 	{
-		std::string startFolder = "";
-		if (!app->window.GetSaveFolder(startFolder))
+		std::string startFolder;
+		char folder[256];
+		if (!app->window.GetSaveFolder(folder, sizeof(folder)))
 		{
 			startFolder = "";
 		}
-		RenderUtils::OpenFileDialog(startFolder.c_str(), "sol", [app](const std::string& filePath) {
+		startFolder = folder;
+		RenderUtils::OpenFileDialog(startFolder, "sol", [app](const std::string& filePath) {
 			app->LoadSolution(filePath);
 			});
 	}

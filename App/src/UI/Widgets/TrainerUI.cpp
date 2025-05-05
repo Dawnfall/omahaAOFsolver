@@ -48,16 +48,19 @@ TrainerUI::TrainerUI(RenderCursor& cursor, int w, int h) :
 
 void TrainerUI::SetNewHand()
 {
+	std::minstd_rand randGen(std::random_device{}());
 	Application* app = Application::GetInstance();
-	if (app->m_currentRange)
+	if (app->currentNode != -1)
 	{
-		const WeightedHand hand = Utils::GetRandomElement<WeightedHand>(*app->m_currentRange);
-		weHand = std::make_unique<WeightedHand>(hand.H, hand.Ev);
+		auto [_hand, _ev] = app->m_solution->GetRandomHandAndEv(app->currentNode, randGen);
 
-		phevaluator::Card c0(weHand->H[0]);
-		phevaluator::Card c1(weHand->H[1]);
-		phevaluator::Card c2(weHand->H[2]);
-		phevaluator::Card c3(weHand->H[3]);
+		this->hand = _hand;
+		this->ev = _ev;
+
+		phevaluator::Card c0(hand[0]);
+		phevaluator::Card c1(hand[1]);
+		phevaluator::Card c2(hand[2]);
+		phevaluator::Card c3(hand[3]);
 
 		m_handLabels[0]->SetColor(RenderUtils::GetCardColor(c0));
 		m_handLabels[0]->SetText(c0.describeCard().substr(0, 1));
@@ -68,7 +71,7 @@ void TrainerUI::SetNewHand()
 		m_handLabels[3]->SetColor(RenderUtils::GetCardColor(c3));
 		m_handLabels[3]->SetText(c3.describeCard().substr(0, 1));
 
-		m_resultLabel->SetText(Utils::FormatFloatToNDecimal(weHand->Ev, 2));
+		m_resultLabel->SetText(Utils::FormatFloatToNDecimal(ev, 2));
 		m_resultLabel->m_box->hide();
 		isCurrentActive = true;
 	}
@@ -76,8 +79,6 @@ void TrainerUI::SetNewHand()
 
 void TrainerUI::Clear()
 {
-	weHand = nullptr;
-
 	m_handLabels[0]->SetColor(FL_BLACK);
 	m_handLabels[1]->SetColor(FL_BLACK);
 	m_handLabels[2]->SetColor(FL_BLACK);
@@ -89,26 +90,19 @@ void TrainerUI::Clear()
 
 void TrainerUI::ScoreCurrent(bool guess)
 {
-	if (weHand)
+	totalCount += 1;
+	if ((ev > 0 && guess) || (ev < 0 && !guess))
 	{
-		totalCount += 1;
-		if ((weHand->Ev > 0 && guess) || (weHand->Ev < 0 && !guess))
-		{
-			correctCount += 1;
-			m_resultLabel->SetColor(FL_GREEN);
-		}
-		else
-			m_resultLabel->SetColor(FL_RED);
-
-		UpdateScoreLabel();
-		m_resultLabel->m_box->show();
-		isCurrentActive = false;
+		correctCount += 1;
+		m_resultLabel->SetColor(FL_GREEN);
 	}
+	else
+		m_resultLabel->SetColor(FL_RED);
+
+	UpdateScoreLabel();
+	m_resultLabel->m_box->show();
+	isCurrentActive = false;
 }
-
-
-
-
 
 RenderCursor TrainerUI::GetStartCursor()
 {

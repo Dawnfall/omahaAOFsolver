@@ -27,7 +27,7 @@ project "Solver"
 
     links
     {
-        --todo
+        "phevalplo4.lib"
     }
 
     filter "configurations:Debug"
@@ -50,7 +50,7 @@ filter "configurations:Release"
     }
     links
     {
-        "phevalplo4.lib"
+        
     }    
     defines "SOLVER_RELEASE"
     runtime "Release"

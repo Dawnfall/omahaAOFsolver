@@ -5,10 +5,9 @@
 
 #include "Core.h"
 #include "Solver/Solver.h"
-#include "Data/Solution.h"
-#include "Solver/Node.h"
-
 #include "Data/SolverParams.h"
+#include "Data/SolverResult.h"
+#include "Data/Solution.h"
 
 int Application::Run()
 {
@@ -26,15 +25,16 @@ void Application::RunSolver()
 	SolverParams solverParams;
 	GetSolverParams(solverParams);
 
-	m_solverStart = std::chrono::high_resolution_clock::now();
 	OnSolveStart.Trigger();
-	Solver::SolveAsync(solverParams, [this](const SolverParams& solverParams, std::shared_ptr<Solution> solution) {
-		
-		Solution::Serialize(std::string(solverParams.folderPath), *solution);
+	Solver::SolveAsync(solverParams, [this](const SolverParams& solverParams, SolverResult result) {
+		m_solverResult = std::make_unique<SolverResult>(result);
+		if (m_solverResult->Solution)
+		{
+			Solution::Serialize(std::string(solverParams.folder), *m_solverResult->Solution);
+		}
 
-		duration = std::chrono::high_resolution_clock::now() - m_solverStart;
 		m_isRunning = false;
-		OnSolveFinish.Trigger(solution.get());
+		OnSolveFinish.Trigger();
 		});
 }
 
@@ -67,20 +67,20 @@ void Application::SetSolution(std::shared_ptr<Solution> solution)
 
 	if (m_solution)
 	{
-		OnSolutionChange.Trigger(m_solution.get());
-		SetRange("");
+		OnSolutionChange.Trigger();
+		SetNode(0);
 	}
 	else
-		OnSolutionChange.Trigger(nullptr);
+		OnSolutionChange.Trigger();
 }
 
-void Application::SetRange(const std::string& action)
+void Application::SetNode(int nodeIndex)
 {
-	if (m_solution == nullptr)
+	if (m_solution == nullptr || currentNode == nodeIndex)
 		return;
 
-	m_currentRange = m_solution->GetRange(action);
-	OnRangeChange.Trigger(m_currentRange);
+	currentNode = nodeIndex;
+	OnRangeChange.Trigger();
 }
 
 bool Application::GetSolverParams(SolverParams& solParams)
@@ -112,22 +112,10 @@ bool Application::GetSolverParams(SolverParams& solParams)
 		RenderUtils::CreateAlert("Invalid Chunk Size");
 		return false;
 	}
-	if (!window.GetPerHandIter(solParams.perHandIterCount))
-	{
-		RenderUtils::CreateAlert("Invalid per hand iters");
-		return false;
-	}
-	if (!window.GetRepeatIters(solParams.repeatIterCount))
-	{
-		RenderUtils::CreateAlert("Invalid repeat iterations");
-		return false;
-	}
-	std::string folderPath;
-	if (!window.GetSaveFolder(folderPath))
+	if (!window.GetSaveFolder(solParams.folder,sizeof(solParams.folder)))
 	{
 		RenderUtils::CreateAlert("Invalid save folder");
 		return false;
 	}
-	solParams.folderPath = folderPath.c_str();
 	return true;
 }

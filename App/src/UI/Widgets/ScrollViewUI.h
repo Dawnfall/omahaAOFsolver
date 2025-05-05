@@ -20,7 +20,7 @@ public:
 	Fl_Scroll* scrollView = nullptr;
 	std::vector<URef<ScrollHandItemUI>> scrollHands;
 
-	void RefreshRange(const std::vector<WeightedHand>* range);
+	void RefreshRange();
 
 	RenderCursor GetStartCursor()override
 	{

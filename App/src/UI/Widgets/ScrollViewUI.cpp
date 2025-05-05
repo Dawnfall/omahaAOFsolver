@@ -3,6 +3,7 @@
 #include "RenderUtils.h"
 #include "Core.h"
 #include "Application.h"
+#include "Solver/PokerUtils.h"
 
 ScrollViewUI::ScrollViewUI(RenderCursor& renderCursor, int w, int h, Application* app) :
 	WidgetUI(renderCursor, w, h)
@@ -19,20 +20,23 @@ ScrollViewUI::ScrollViewUI(RenderCursor& renderCursor, int w, int h, Application
 
 }
 
-void ScrollViewUI::RefreshRange(const std::vector<WeightedHand>* range)
+void ScrollViewUI::RefreshRange()
 {
 	scrollHands.clear();
 	scrollView->clear();
 
-	RenderCursor thisCursor= GetStartCursor();
+	RenderCursor thisCursor = GetStartCursor();
 	//thisCursor.MoveX(30, 44);
 	//thisCursor.NextRow();
 
-	if (range != nullptr)
+	Application* app = Application::GetInstance();
+	if (app->currentNode != -1)
 	{
-		for (int i = 0; i < range->size(); i++)
+		for (int i = 0; i < PokerUtils::rangeSize; i++)
 		{
-			scrollHands.emplace_back(std::make_unique<ScrollHandItemUI>(thisCursor, 300, 30, (*range)[i]));
+			const auto& [hand, evRef] = app->m_solution->GetHandAndEv(app->currentNode, i);
+
+			scrollHands.emplace_back(std::make_unique<ScrollHandItemUI>(thisCursor, 300, 30, hand,evRef));
 			scrollView->add(scrollHands.back()->m_itemGroup);
 			thisCursor.NextRow();
 		}

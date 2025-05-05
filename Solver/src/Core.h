@@ -8,6 +8,7 @@
 
 #include <phevaluator.h>
 
+#include <algorithm>
 #include <filesystem>
 #include <cstdint>
 #include <array>
@@ -30,7 +31,7 @@ using SRef = std::shared_ptr<T>;
 //card oreder 0,1,2....
 // 2c, 2d, 2h, 2s,...
 
-//using Card = phevaluator::Card;
+using Card = phevaluator::Card;
 using Rank = phevaluator::Rank;
 
 using Hand = std::array<uint8_t, 4>;

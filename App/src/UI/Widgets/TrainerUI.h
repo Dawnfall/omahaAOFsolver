@@ -7,7 +7,6 @@
 #include "RenderUtils.h"
 
 #include "Core.h"
-#include "Data/WeightedHand.h"
 
 class TrainerUI :public WidgetUI
 {
@@ -19,7 +18,8 @@ public:
 	URef<ButtonUI> m_aiButton;
 	URef<LabelUI> m_resultLabel;
 
-	URef<WeightedHand> weHand = nullptr;
+	Hand hand;
+	float ev;
 
 	unsigned int correctCount = 0;
 	unsigned int totalCount = 0;
@@ -42,7 +42,7 @@ public:
 		m_resultLabel->m_box->hide();
 	}
 
-	
+
 	RenderCursor GetStartCursor() override;
 
 private:

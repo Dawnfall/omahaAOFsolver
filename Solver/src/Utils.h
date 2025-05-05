@@ -3,8 +3,6 @@
 
 namespace Utils
 {
-	std::minstd_rand& GetRandomGen();
-
 	template <typename T, std::size_t N>
 	bool ContainsAny(const std::array<T, N>& array, const std::unordered_set<T>& removedItems)
 	{
@@ -68,7 +66,13 @@ namespace Utils
 		return false;
 	}
 
-	inline std::string FormatFloatToNDecimal(float value,unsigned int n) {
+	inline std::string FormatFloatToNDecimal(float value, unsigned int n) {
+		std::ostringstream stream;
+		stream << std::fixed << std::setprecision(n) << value; // Set precision to 1 decimal place
+		return stream.str();
+	}
+
+	inline std::string FormatDoubleToNDecimal(double value, unsigned int n) {
 		std::ostringstream stream;
 		stream << std::fixed << std::setprecision(n) << value; // Set precision to 1 decimal place
 		return stream.str();

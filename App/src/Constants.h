@@ -64,7 +64,7 @@ namespace Constants
 	const std::string saveFolder_default = "F:/Programiranje/Test Data/Solver";
 	const std::string repeatIter_default = "1";
 	const std::string threadCount_default = "16";
-	const std::string chunkSize_default = "1000";
+	const std::string chunkSize_default = "250";
 	const std::string perHandIter_default = "1";
 	const bool saveAutomatic_default = true;
 }

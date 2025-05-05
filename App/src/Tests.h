@@ -7,22 +7,12 @@ namespace Test2
 {
 	void Run()
 	{
-		BuildSolution();
 		//SimulateNode();
 		//SimulateHand();
 		//TestSimulate();
 		//TestHandVsRange();
 		//TestHandVsHand();
 		//TestCompareHands();
-
-	}
-
-	void BuildSolution()
-	{
-		Solution s = Solver::Solve(2, Bb, Sb, { "3d", "8c", "9c" });
-
-		auto sb = s.GetNode("");
-		sb->range.PrintRandom(10);
 
 	}
 
@@ -97,25 +87,6 @@ namespace Test2
 		std::cout << "Hand1 eq: " << eq << "" << std::endl;
 	}
 
-	void TestHandVsHand()
-	{
-		Situation sit(1.0f, 0.5f, 5.0f);
-		sit.SetFlop(Card("Ad"), Card("5s"), Card("Qh"));
-		sit.AddHand({ Card("Js"),Card("Qs"),Card("4s"),Card("7d") }, Position::CO);
-		sit.AddHand({ Card("2c"),Card("8c"),Card("9h"),Card("Ac") }, Position::BU);
-
-		float res = Solver::CalculateEquity(sit.GetHands(), sit.GetBoard(), sit.GetRemovedCards());
-		std::cout << "Hand1 eq: " << res << "" << std::endl;
-	}
-
-	void TestCompareHands()
-	{
-		Hand h1{ Card("Js"),Card("Qs"),Card("4s"),Card("7d") };
-		Hand h2{ Card("2c"),Card("8c"),Card("9h"),Card("Ac") };
-		Board b = { Card("Ad"),Card("Ah"),Card("3h"),Card("5s"),Card("Qh") };
-		float res = Solver::CompareHands(h1, h2, b);
-		std::cout << "Hand1 eq: " << res << "" << std::endl;
-	}
 
 
 

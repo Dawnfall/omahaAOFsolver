@@ -2,7 +2,7 @@
 #include "RenderUtils.h"
 
 #include "Data/Solution.h"
-#include "Data/WeightedHand.h"
+//#include "Data/WeightedHand.h"
 #include <vector>
 
 #include <FL/Fl_Group.H>
@@ -18,8 +18,9 @@ public:
 	NodeSelectorUI(RenderCursor& cursor, int w, int h, Application* app, Fl_Group* parentgroup);
 	std::vector<URef<RadioButtonUI>> nodeButtons;
 	std::vector<URef<LabelUI>> nodeLabels;
+	std::vector<int> rangeIndices;
 
-	void Refresh(Solution* solution, Fl_Group* parentGroup, Fl_Callback* callback = nullptr);
+	void Refresh(Fl_Group* parentGroup);
 
 	RenderCursor GetStartCursor() override
 	{

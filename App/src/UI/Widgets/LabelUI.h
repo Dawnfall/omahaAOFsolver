@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include "FL/Fl_Group.H"
 #include "FL/Fl_Box.H"
 #include "WidgetUI.h"
 
@@ -19,7 +20,15 @@ public:
 	~LabelUI()
 	{
 		if (m_box)
+		{
+			if (m_box->parent())
+			{
+				m_box->parent()->remove(m_box);
+				if (m_box->parent())
+					int a = 4;
+			}
 			delete m_box;
+		}
 	}
 
 	void SetText(const std::string& newText)

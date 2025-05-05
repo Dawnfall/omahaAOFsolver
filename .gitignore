@@ -2,3 +2,15 @@
 vcpkg_installed/
 bin/
 bin-int/
+
+# User-specific files
+*.user
+*.suo
+*.vcxproj.user
+*.opendb
+*.VC.db
+
+*.sln
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user
