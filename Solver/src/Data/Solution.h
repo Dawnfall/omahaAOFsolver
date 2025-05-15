@@ -2,6 +2,7 @@
 
 #include "Core.h"
 #include "Data/SolverParams.h"
+#include "RandomGenerator.h"
 
 struct Solution
 {
@@ -37,7 +38,7 @@ struct Solution
 
 	std::string GetRangeName(int rangeIndex)const;
 
-	std::tuple<Hand, float> GetRandomHandAndEv(int rangeIndex, std::minstd_rand& randGen)const;
+	std::tuple<Hand, float> GetRandomHandAndEv(int rangeIndex, RandomGenerator& randGen)const;
 	std::tuple<Hand, float> GetHandAndEv(int rangeIndex, int handIndex)const;
 
 	static void Serialize(const std::string& filePath, const Solution& solution);

@@ -3,6 +3,7 @@
 #include "Data/SolverData.h"
 #include "Solver/PokerUtils.h"
 #include "Position.h"
+#include "RandomGenerator.h"
 
 void Solver::SolveAsync(const SolverParams& solverParams, std::function<void(const SolverParams&, SolverResult)> callback)
 {
@@ -11,42 +12,13 @@ void Solver::SolveAsync(const SolverParams& solverParams, std::function<void(con
 
 		SolverData solverData(solverParams);
 
-		std::vector<std::minstd_rand> randGens;
-		for (int i = 0; i < solverParams.threadCount; i++)
-			randGens.emplace_back(std::random_device{}());
+		std::vector<RandomGenerator> randGens;
+		for (unsigned int i = 0; i < solverParams.threadCount; i++)
+			randGens.emplace_back(RandomGenerator());
 
 		auto [range, evs] = BuildRangeAndEvs(solverParams, solverData);
-
-		auto threadTask = [&solverParams, &solverData, &range, &evs](std::minstd_rand& randGen)
-			{
-				Board_TR turnAndRiver;
-
-				for (unsigned int repeatIter = 0; repeatIter < PokerUtils::maxRepeatIters; ++repeatIter)
-				{
-					auto [perHandIters, is99Conf] = PokerUtils::GetHandItersAndIs99Confidence(repeatIter);
-
-					for (unsigned int rangeIndex = 0; rangeIndex < solverData.totalRanges; rangeIndex++)
-					{
-						while (solverData.handIndex < static_cast<int>(PokerUtils::rangeSize))
-						{
-							unsigned int start = solverData.handIndex.fetch_add(solverParams.chunkSize);
-							unsigned int end = std::min(start + solverParams.chunkSize, PokerUtils::rangeSize);
-
-							for (size_t handIndex = start; handIndex < end; ++handIndex)
-							{
-								std::vector<size_t> hands{ handIndex };
-								std::unordered_set<uint8_t> removedCards;
-								removedCards.insert(range.begin() + handIndex * 4, range.begin() + handIndex * 4 + 4);
-
-								evs[handIndex * solverData.totalRanges + rangeIndex] =
-									CalcBbEvForAiHand(rangeIndex, range, evs, solverParams, solverData, removedCards, hands, turnAndRiver, randGen, perHandIters, is99Conf, rangeIndex>2);
-							}
-						}
-						solverData.syncPoint.arrive_and_wait();
-						solverData.handIndex = 0;
-						solverData.syncPoint.arrive_and_wait();
-					}
-				}
+		auto threadTask = [&solverParams, &solverData, &range, &evs](RandomGenerator& randGen) {
+			ExecuteThreadTask(solverParams, solverData, range, evs, randGen);
 			};
 
 		std::vector<std::thread> threads;
@@ -73,7 +45,43 @@ void Solver::SolveAsync(const SolverParams& solverParams, std::function<void(con
 		}).detach(); // Detach the thread to allow it to run independently
 }
 
-std::tuple<std::vector<uint8_t>, std::vector<float>> Solver::BuildRangeAndEvs(const SolverParams& solParams, SolverData& solverData)//, std::minstd_rand& randGen)
+void Solver::ExecuteThreadTask(const SolverParams& solverParams, SolverData& solverData,
+	const std::vector<uint8_t>& range, std::vector<float>& evs,
+	RandomGenerator& randGen)
+{
+	Board_TR turnAndRiver;
+	std::unordered_set<uint8_t> removedFlop{ solverParams.flop[0], solverParams.flop[1], solverParams.flop[2] };
+
+	for (size_t repeatIter = 0; repeatIter < solverData.repeatIters; ++repeatIter)
+	{
+		for (unsigned int rangeIndex = 0; rangeIndex < solverData.totalRanges; rangeIndex++)
+		{
+			float evFold = PokerUtils::GetFoldLoss(rangeIndex, solverParams);
+
+			while (solverData.handIndex < static_cast<int>(PokerUtils::rangeSize))
+			{
+				unsigned int start = solverData.handIndex.fetch_add(solverParams.chunkSize);
+				unsigned int end = std::min(start + solverParams.chunkSize, PokerUtils::rangeSize);
+
+				for (size_t handIndex = start; handIndex < end; ++handIndex)
+				{
+					std::vector<size_t> hands{ handIndex };
+					std::unordered_set<uint8_t> removedCards = removedFlop;
+					removedCards.insert(range.begin() + handIndex * 4, range.begin() + handIndex * 4 + 4);
+
+					float handEV = CalcBbEvForAiHand(rangeIndex, range, evs, solverParams, solverData,
+						removedCards, hands, turnAndRiver, randGen, repeatIter);
+					evs[handIndex * solverData.totalRanges + rangeIndex] = handEV + evFold + solverParams.margin;
+				}
+			}
+			solverData.syncPoint.arrive_and_wait();
+			solverData.handIndex = 0;
+			solverData.syncPoint.arrive_and_wait();
+		}
+	}
+}
+
+std::tuple<std::vector<uint8_t>, std::vector<float>> Solver::BuildRangeAndEvs(const SolverParams& solParams, SolverData& solverData)
 {
 	std::vector<uint8_t> range;
 	range.reserve(PokerUtils::rangeSize * 4);
@@ -108,22 +116,19 @@ std::tuple<std::vector<uint8_t>, std::vector<float>> Solver::BuildRangeAndEvs(co
 			}
 		}
 	}
-	for (int i = 0; i < solverData.totalRanges * PokerUtils::rangeSize; i++)
-		evs.emplace_back(1.0f);
-	//evs.emplace_back(static_cast<float>(PokerUtils::GetRandomEv(randGen)));
+	for (unsigned int i = 0; i < solverData.totalRanges * PokerUtils::rangeSize; i++)
+		evs.emplace_back(0.0f);
 
 	return { range,evs };
 }
 
-float Solver::CalcBbEvForAiHand(size_t rangeIndex, const std::vector<uint8_t>& range, const std::vector<float>& evs, const SolverParams& solParams, SolverData& solverData, const std::unordered_set<uint8_t>& removedCards, const std::vector<size_t>& hands, Board_TR& turnAndRiver, std::minstd_rand& randGen, size_t totalPerHandIters, bool is99Conf, bool doRemoveFolded)
+float Solver::CalcBbEvForAiHand(size_t rangeIndex, const std::vector<uint8_t>& range, const std::vector<float>& evs, const SolverParams& solParams, SolverData& solverData, const std::unordered_set<uint8_t>& removedCards, const std::vector<size_t>& hands, Board_TR& turnAndRiver, RandomGenerator& randGen, size_t currRepeat)
 {
-	float evFold = PokerUtils::GetFoldLoss(rangeIndex, solParams);
-
 	float bbEv = 0.0f;
+
 	unsigned int handIter = 0;
-	while (handIter++ < totalPerHandIters)
+	while (handIter++ < solverData.maxHandIters[currRepeat])
 	{
-		float pot = solParams.sb + solParams.bb + PokerUtils::GetRangeAiSize(rangeIndex, solParams);
 		std::unordered_set<uint8_t> removed = removedCards;
 		std::vector<size_t> aiHands = hands;
 		for (const size_t prevAIRange : PokerUtils::GetAllFromAiRanges(rangeIndex, solParams.totalPlayers))
@@ -131,10 +136,9 @@ float Solver::CalcBbEvForAiHand(size_t rangeIndex, const std::vector<uint8_t>& r
 			int prevHandIndex = Solver::ForcePickHand(range, evs, prevAIRange, solverData.totalRanges, removed, randGen, true);
 			aiHands.emplace_back(prevHandIndex);
 			removed.insert(range.begin() + prevHandIndex * 4, range.begin() + prevHandIndex * 4 + 4);
-			pot += PokerUtils::GetRangeAiSize(prevAIRange, solParams);
 		}
 
-		if (doRemoveFolded)
+		if (currRepeat > 4)
 		{
 			for (const size_t prevFoldRange : PokerUtils::GetAllFromFoldRanges(rangeIndex, solParams.totalPlayers))
 			{
@@ -143,52 +147,56 @@ float Solver::CalcBbEvForAiHand(size_t rangeIndex, const std::vector<uint8_t>& r
 			}
 		}
 
-		size_t currNodeIndex = rangeIndex;
-		size_t nextNodeIndex;
+		size_t currRange = rangeIndex;
+		int nextRange = static_cast<int>(currRange);
 		bool isAI = true;
-		while (PokerUtils::GetToRange(currNodeIndex, nextNodeIndex, isAI, solParams.totalPlayers))
+		while (true)
 		{
+			nextRange = PokerUtils::GetToRange(currRange, isAI, solParams.totalPlayers);
+			if (nextRange == -1)
+				break;
+
 			int nextHandIndex = Solver::GetRandomHand(range, removed, randGen);
-			if (evs[solverData.totalRanges * nextHandIndex + nextNodeIndex] > 0)
+			if (evs[solverData.totalRanges * nextHandIndex + nextRange] >= 0)
 			{
 				aiHands.emplace_back(nextHandIndex);
 				removed.insert(range.begin() + nextHandIndex * 4, range.begin() + nextHandIndex * 4 + 4);
-				pot += PokerUtils::GetRangeAiSize(nextNodeIndex, solParams);
 				isAI = true;
 			}
 			else
 				isAI = false;
-			currNodeIndex = nextNodeIndex;
+			currRange = nextRange;
 		}
 
+		float pot = PokerUtils::GetPotAfter(currRange, solParams, isAI);
 		float ev = CalculateEquityOnFlop(aiHands, range, solParams.flop, turnAndRiver, removed, randGen);
 		bbEv += ev * pot - solParams.stackSize;
 
-
-		if (handIter % 5 == 0)
+		if (handIter >= solverData.minHandIters[currRepeat] && handIter % 5 == 0)
 		{
-			float currEv = bbEv / handIter - evFold + solParams.margin;
-			if (std::abs(currEv) > PokerUtils::GetMinWinrate(rangeIndex, solParams.totalPlayers, handIter, is99Conf))
+			float currEv = bbEv / handIter;
+			if (std::abs(currEv) > PokerUtils::GetMinWinrate(rangeIndex, solParams.totalPlayers, handIter, solverData.is99Conf[currRepeat]))
 				return currEv;
 		}
 	}
-	return bbEv / handIter - evFold + solParams.margin;
+	return bbEv / static_cast<float>(solverData.maxHandIters[currRepeat]);
 }
 
-inline float Solver::CalculateEquityOnFlop(const std::vector<size_t>& handIndices, const std::vector<uint8_t>& ranges, const Board_F& flop, Board_TR& turnAndRiver, const std::unordered_set<uint8_t> removedCards, std::minstd_rand& randGen)
+inline float Solver::CalculateEquityOnFlop(const std::vector<size_t>& handIndices, const std::vector<uint8_t>& ranges, const Board_F& flop, Board_TR& turnAndRiver,
+	const std::unordered_set<uint8_t> removedCards, RandomGenerator& randGen)
 {
 	if (handIndices.size() == 1)
 		return 1.0f;
 
 	while (true)
 	{
-		turnAndRiver[0] = PokerUtils::GetRandomCardFromDeck(randGen);
+		turnAndRiver[0] = randGen.GetRandomCardFromDeck();
 		if (!removedCards.contains(turnAndRiver[0]))
 			break;
 	}
 	while (true)
 	{
-		turnAndRiver[1] = PokerUtils::GetRandomCardFromDeck(randGen);
+		turnAndRiver[1] = randGen.GetRandomCardFromDeck();
 		if (turnAndRiver[0] != turnAndRiver[1] && !removedCards.contains(turnAndRiver[1]))
 			break;
 	}
@@ -206,7 +214,6 @@ inline float Solver::CalcEqOfHand1(const std::vector<size_t>& handIndices, const
 	int equalCount = 1;
 	for (int i = 1; i < handIndices.size(); i++)
 	{
-		size_t handIndex = handIndices[i];
 		ranks.emplace_back(evaluate_plo4_cards(flop[0], flop[1], flop[2], turnAndRiver[0], turnAndRiver[1], range[handIndices[i] * 4], range[handIndices[i] * 4 + 1], range[handIndices[i] * 4 + 2], range[handIndices[i] * 4 + 3]));
 
 		if (ranks.back() > ranks[0])

@@ -1,49 +1,31 @@
 #pragma once
 
-#include "WidgetUI.h"
 #include "FL/Fl_Radio_Round_Button.H"
 #include "FL/Fl_Radio_Button.H"
+#include "UI/RenderCursor.h"
 
-class RadioButtonUI :public WidgetUI
+class RadioButtonUI :public Fl_Round_Button
 {
-private:
-	Fl_Callback* m_callback = nullptr;
-	void* m_userData;
-
 public:
-	Fl_Round_Button* m_radio;
-
-	RadioButtonUI(RenderCursor& cursor, int w, int h, bool isOn, Fl_Callback* callback = nullptr, void* userData = nullptr) :
-		WidgetUI(cursor, w, h), m_callback(callback), m_userData(userData)
+	RadioButtonUI(RenderCursor& cursor, int w, int h, bool isOn, Fl_Callback* cb = nullptr, void* ptr = nullptr) :
+		Fl_Round_Button(cursor.posX, cursor.posY, w, h)
 	{
-		m_radio = new Fl_Round_Button(m_posX, m_posY, m_width, m_height);
-		m_radio->type(FL_RADIO_BUTTON);
+		type(FL_RADIO_BUTTON);
 		if (isOn)
-			m_radio->setonly();
-		SetCallback(m_callback, m_userData);
+			setonly();
+
+		callback(cb, ptr);
+		cursor.MoveX(w, h);
 	}
 
 	~RadioButtonUI()
 	{
-		if (m_radio)
-		{
-			if (m_radio->parent())
-				m_radio->parent()->remove(m_radio);
-			delete m_radio;
-		}
+		if (parent())
+			parent()->remove(this);
 	}
 
 	bool IsOn()
 	{
-		return m_radio->value();
-	}
-
-	void SetCallback(Fl_Callback* callback, void* userData)
-	{
-		m_callback = callback;
-		m_userData = userData;
-
-		if (m_callback)
-			m_radio->callback(m_callback, m_userData);
+		return value();
 	}
 };

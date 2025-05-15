@@ -69,4 +69,29 @@ project "App"
         }   
         defines "SOLVER_RELEASE"
         runtime "Release"
-        optimize "on"
+        optimize "Speed"
+
+
+
+    filter "configurations:Deploy"
+        libdirs 
+        {
+            "%{LibDirs.PHeval_r}",
+            "%{LibDirs.VCPKG_R}"
+        }
+        links
+        {
+            "phevalplo4.lib",
+            "fltk.lib",
+            "fltk_images.lib",
+            "zlib.lib",
+            "libpng16.lib"
+        }   
+        defines 
+        {
+            "NDEBUG",
+            "SOLVER_RELEASE"
+        }
+        runtime "Release"
+        symbols "Off"        -- Disable debugging symbols
+        optimize "Full"      -- Maximum optimization for deployment

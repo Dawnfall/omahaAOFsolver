@@ -6,6 +6,7 @@
 #define SOLVER_API __declspec(dllimport)
 #endif
 
+#define NOMINMAX
 #include <phevaluator.h>
 
 #include <algorithm>

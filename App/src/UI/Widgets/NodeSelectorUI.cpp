@@ -4,13 +4,15 @@
 #include "Application.h"
 #include "Solver/PokerUtils.h"
 
-NodeSelectorUI::NodeSelectorUI(RenderCursor& cursor, int w, int h, Application* app, Fl_Group* parentGroup) :
-	WidgetUI(cursor, w, h)
+NodeSelectorUI::NodeSelectorUI(RenderCursor& cursor, int w, int h, Fl_Group* parentGroup) :
+	WidgetUI(cursor, w, h), m_parentGroup(parentGroup)
 {
-
+	Application::GetInstance()->OnSolutionChange.AddListener([this]() {
+		Refresh();
+		});
 }
 
-void NodeSelectorUI::Refresh(Fl_Group* parentGroup)
+void NodeSelectorUI::Refresh()
 {
 	nodeButtons.clear();
 	nodeLabels.clear();
@@ -25,22 +27,22 @@ void NodeSelectorUI::Refresh(Fl_Group* parentGroup)
 		for (int rangeIndex = 0; rangeIndex < totalRanges; rangeIndex++)
 		{
 			rangeIndices.emplace_back(rangeIndex);
-			std::shared_ptr<int> rangeIndexPtr= std::make_shared<int>(rangeIndex);
+			std::shared_ptr<int> rangeIndexPtr = std::make_shared<int>(rangeIndex);
 
-			nodeLabels.emplace_back(std::make_unique<LabelUI>(thisCursor, 70, 20, app->m_solution->GetRangeName(rangeIndex)));
+			nodeLabels.emplace_back(std::make_unique<LabelUI>(thisCursor, 150, 20, app->m_solution->GetRangeName(rangeIndex)));
 			nodeButtons.emplace_back(std::make_unique<RadioButtonUI>(thisCursor, 20, 20, false));
 
-			nodeButtons.back()->SetCallback(
+			nodeButtons.back()->callback(
 				[](Fl_Widget* widget, void* userData) {
 					int* rangeIndexPtr = static_cast<int*>(userData);
-					Application::GetInstance()->SetNode(*rangeIndexPtr);
-				}, &rangeIndices[rangeIndex]); 
+					Application::GetInstance()->SetRange(*rangeIndexPtr);
+				}, &rangeIndices[rangeIndex]);
 
-			parentGroup->add(nodeLabels.back()->m_box);
-			parentGroup->add(nodeButtons.back()->m_radio);
+			m_parentGroup->add(nodeLabels.back().get());
+			m_parentGroup->add(nodeButtons.back().get());
 
-			nodeLabels.back()->m_box->redraw();
-			nodeButtons.back()->m_radio->redraw();
+			nodeLabels.back()->redraw();
+			nodeButtons.back()->redraw();
 
 			thisCursor.NextRow();
 		}

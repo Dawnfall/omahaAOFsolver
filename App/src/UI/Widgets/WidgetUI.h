@@ -9,7 +9,6 @@ public:
 	int m_width;
 	int m_height;
 
-
 	WidgetUI(RenderCursor& cursor, int w, int h) :
 		m_posX(cursor.posX), m_posY(cursor.posY), m_width(w), m_height(h)
 	{

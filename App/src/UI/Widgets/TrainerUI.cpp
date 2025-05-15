@@ -8,14 +8,8 @@ TrainerUI::TrainerUI(RenderCursor& cursor, int w, int h) :
 {
 	RenderCursor thisCursor = GetStartCursor();
 
-	m_resetButton = std::make_unique<ButtonUI>(thisCursor, 30, 30, "R", [](Fl_Widget* callback, void* userData) {
-		TrainerUI* trainer = static_cast<TrainerUI*>(userData);
-		trainer->ResetScore();
-		trainer->SetNewHand();
-		}, this);
-
+	m_resetButton = std::make_unique<ButtonUI>(thisCursor, 30, 30, "R");
 	m_scoreLabel = std::make_unique<LabelUI>(thisCursor, 100, 30, "Score:");
-
 	thisCursor.NextRow();
 
 	m_handLabels[0] = std::make_unique<LabelUI>(thisCursor, Constants::boardCardX, Constants::boardCardY, "");
@@ -24,35 +18,47 @@ TrainerUI::TrainerUI(RenderCursor& cursor, int w, int h) :
 	m_handLabels[3] = std::make_unique<LabelUI>(thisCursor, Constants::boardCardX, Constants::boardCardY, "");
 	thisCursor.NextRow();
 
-	m_foldButton = std::make_unique<ButtonUI>(thisCursor, 60, 30, "Fold", [](Fl_Widget* widget, void* userData) {
+	m_foldButton = std::make_unique<ButtonUI>(thisCursor, 60, 30, "Fold"); 
+	m_aiButton = std::make_unique<ButtonUI>(thisCursor, 60, 30, "All In"); 
+	thisCursor.NextRow();
+
+	m_resultLabel = std::make_unique<LabelUI>(thisCursor, 140, 30, "");
+
+	m_foldButton->callback([](Fl_Widget* widget, void* userData) {
 		TrainerUI* trainer = static_cast<TrainerUI*>(userData);
 		if (trainer->isCurrentActive)
 			trainer->ScoreCurrent(false);
 		else
 			trainer->SetNewHand();
 		}, this);
-
-	m_aiButton = std::make_unique<ButtonUI>(thisCursor, 60, 30, "All In", [](Fl_Widget* widget, void* userData) {
+	m_aiButton->callback([](Fl_Widget* widget, void* userData) {
 		TrainerUI* trainer = static_cast<TrainerUI*>(userData);
 		if (trainer->isCurrentActive)
 			trainer->ScoreCurrent(true);
 		else
 			trainer->SetNewHand();
 		}, this);
+	m_resetButton->callback([](Fl_Widget* callback, void* userData) {
+		TrainerUI* trainer = static_cast<TrainerUI*>(userData);
+		trainer->ResetScore();
+		trainer->SetNewHand();
+		}, this);
 
-	thisCursor.NextRow();
+	Application::GetInstance()->OnRangeChange.AddListener([this]()
+		{
+			SetNewHand();
+		});
 
-	m_resultLabel = std::make_unique<LabelUI>(thisCursor, 140, 30, "");
 	Clear();
 }
 
 void TrainerUI::SetNewHand()
 {
-	std::minstd_rand randGen(std::random_device{}());
+	RandomGenerator randGen;
 	Application* app = Application::GetInstance();
-	if (app->currentNode != -1)
+	if (app->currentRange != -1)
 	{
-		auto [_hand, _ev] = app->m_solution->GetRandomHandAndEv(app->currentNode, randGen);
+		auto [_hand, _ev] = app->m_solution->GetRandomHandAndEv(app->currentRange, randGen);
 
 		this->hand = _hand;
 		this->ev = _ev;
@@ -72,7 +78,7 @@ void TrainerUI::SetNewHand()
 		m_handLabels[3]->SetText(c3.describeCard().substr(0, 1));
 
 		m_resultLabel->SetText(Utils::FormatFloatToNDecimal(ev, 2));
-		m_resultLabel->m_box->hide();
+		m_resultLabel->hide();
 		isCurrentActive = true;
 	}
 }
@@ -85,7 +91,7 @@ void TrainerUI::Clear()
 	m_handLabels[3]->SetColor(FL_BLACK);
 
 	UpdateScoreLabel();
-	m_resultLabel->m_box->hide();
+	m_resultLabel->hide();
 }
 
 void TrainerUI::ScoreCurrent(bool guess)
@@ -100,7 +106,7 @@ void TrainerUI::ScoreCurrent(bool guess)
 		m_resultLabel->SetColor(FL_RED);
 
 	UpdateScoreLabel();
-	m_resultLabel->m_box->show();
+	m_resultLabel->show();
 	isCurrentActive = false;
 }
 

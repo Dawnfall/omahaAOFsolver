@@ -39,7 +39,7 @@ public:
 		correctCount = 0;
 
 		UpdateScoreLabel();
-		m_resultLabel->m_box->hide();
+		m_resultLabel->hide();
 	}
 
 

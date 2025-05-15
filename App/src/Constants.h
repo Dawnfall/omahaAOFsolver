@@ -58,6 +58,7 @@ namespace Constants
 
 	//**************
 	//default values
+	const std::string board_default = "7s7d7h";
 	const std::string sb_default = "0.5";
 	const std::string bb_default = "1.0";
 	const std::string margin_default = "0.1";

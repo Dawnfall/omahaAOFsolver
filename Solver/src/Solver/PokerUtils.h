@@ -5,30 +5,9 @@
 #include "Data/SolverParams.h"
 #include "Utils.h"
 
-
 namespace PokerUtils
 {
 	inline const unsigned int rangeSize = 211876;
-
-	//***************
-	// Random
-
-	inline std::uniform_int_distribution<> rangeDist(0, rangeSize - 1);
-	inline std::uniform_int_distribution<> deckDist(0, 51);
-	inline std::uniform_real_distribution<> evRandDist(-5.0f, 5.0f);
-
-	inline uint8_t GetRandomCardFromDeck(std::minstd_rand& randGen)
-	{
-		return deckDist(randGen);
-	}
-	inline float GetRandomEv(std::minstd_rand& randGen)
-	{
-		return static_cast<float>(evRandDist(randGen));
-	}
-	inline unsigned int GetRandomHandFromRange(std::minstd_rand& randGen)
-	{
-		return rangeDist(randGen);
-	}
 
 	//*****************
 	//*****************
@@ -66,7 +45,7 @@ namespace PokerUtils
 		std::array<float, N> reqWinrates{ -1 };
 		for (size_t n = 1; n <= N - 1; ++n)
 		{
-			float stdError = stdDevPerHand / std::sqrtf(n);
+			float stdError = stdDevPerHand / std::sqrtf(static_cast<float>(n));
 			reqWinrates[n] = z * stdError;
 		}
 		return reqWinrates;
@@ -87,18 +66,49 @@ namespace PokerUtils
 
 	//******************
 	//******************
-	// Hand Iters
-	inline size_t maxRepeatIters = 6;
+	// Iteration Data
 
-	inline std::tuple<size_t, bool> GetHandItersAndIs99Confidence(size_t currRepeat)
+	inline void GetIterData(int totalPlayers, unsigned int& repeatIters,
+		std::vector<unsigned int>& minHandIters, std::vector<unsigned int>& maxHandIters, std::vector<bool>& is99Conf)
 	{
-		if (currRepeat < 2)
-			return { 10,false };
-		if (currRepeat < 4)
-			return { 250,false };
-		if (currRepeat < 5)
-			return{ 500,false };
-		return { 1000,true };
+		switch (totalPlayers)
+		{
+			//case 2: //many iters ... 8s7s6d ....cca 300s
+			//	repeatIters = 20;
+			//	minHandIters = { 5,5,5,5,5,20,20,20,20,20,50,50,50,50,50,50,50,100,200,500 };
+			//	maxHandIters = { 10,10,10,10,10,50,50,50,50,50,100,100,100,100,100,250,250,500,1000,2500 };
+			//	is99Conf = { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1 };
+			//	break;
+
+		case 2: //less iters, more hands...7s6s5d ... cca 350s boljsa resitev
+			repeatIters = 5;
+			minHandIters = { 5,20,50,500,1500 };
+			maxHandIters = { 10,50,100,2500,5000 };
+			is99Conf = { 0,0,0,0,1 };
+			break;
+		case 3:
+			repeatIters = 5;
+			minHandIters = { 5,20,100,500,2000 };
+			maxHandIters = { 10,50,250,2500,5000 };
+			is99Conf = { 0,0,0,0,1 };
+			break;
+
+
+
+
+
+
+
+
+
+
+		default: //4
+			repeatIters = 15;
+			minHandIters = { 5,10,10,10,20,20,20,50,50,50,100,100,100,100,100 };
+			maxHandIters = { 5,10,50,50,50,100,100,100,200,200,250,250,500,500,1000 };
+			is99Conf = { 0,0,0,0,0,0,0,0,0,0,0,0,0,1,1 };
+			break;
+		}
 	}
 
 	//******************
@@ -149,57 +159,262 @@ namespace PokerUtils
 	//******************
 	// Range tree
 
-	const std::array<int, 2> fromRanges2p = { -1,0 };
-	const std::array<int, 6> fromRanges3p = { -1,0,0,1,2,2 };
-	const std::array<int, 14> fromRanges4p = { -1,0,0,1,1,2,2,3,4,4,5,5,6,6 };
-
-	const std::vector<std::vector<size_t>> allFromAIRanges2p = { {},{0} };
-	const std::vector<std::vector<size_t>> allFromAIRanges3p = { {},{},{0},{1},{0},{0,2} };
-	const std::vector<std::vector<size_t>> allFromAIRanges4p = { {},{},{0},{},{1},{0},{0,2},{3},{1},{1,4},{0},{0,5},{0,2},{0,2,6} };
-
-	const std::vector<std::vector<size_t>> allFromFoldRanges2p = { {},{} };
-	const std::vector<std::vector<size_t>> allFromFoldRanges3p = { {},{0},{},{0},{2},{} };
-	const std::vector<std::vector<size_t>> allFromFoldRanges4p = { {},{0},{},{0,1},{0},{2},{},{0,1},{0,4},{0},{2,5},{2},{6},{} };
-
-	const std::array<int, 2> toAIRange2p = { 1,-1 };
-	const std::array<int, 6> toAIRange3p = { 2,3,5,-1,-1,-1 };
-	const std::array<int, 14> toAIRange4p = { 2,4,6,7,9,11,13,-1,-1,-1,-1,-1,-1,-1 };
-
-	const std::array<int, 2> toFoldRange2p = { -1,-1 };
-	const std::array<int, 6> toFoldRange3p = { 1,-1,4,-1,-1,-1 };
-	const std::array<int, 14> toFoldRange4p = { 1,3,5,-1,8,10,12,-1,-1,-1,-1,-1,-1,-1 };
-
-	const std::array<bool, 2> isFromAINode2p = { 0,1 };
-	const std::array<bool, 6> isFromAINode3p = { 0,0,1,1,0,1 };
-	const std::array<bool, 14> isFromAINode4p = { 0,0,1,0,1,0,1,1,0,1,0,1,0,1 };
-
-	inline const std::vector<size_t>& GetAllFromAiRanges(size_t rangeIndex, int totalPlayers)
+	inline unsigned int GetTotalRanges(int totalPlayers)
 	{
 		switch (totalPlayers)
 		{
-		case 2:
-			return allFromAIRanges2p[rangeIndex];
+		case 4:
+			return 14;
 		case 3:
-			return allFromAIRanges3p[rangeIndex];
+			return 6;
 		default:
-			return allFromAIRanges4p[rangeIndex];
+			return 2;
 		}
 	}
 
+	inline const std::vector<size_t>& GetAllFromAiRanges(size_t rangeIndex, int totalPlayers)
+	{
+		static const std::vector<size_t> empty{};
+		static const std::vector<size_t> zero{ 0 };
+		static const std::vector<size_t> one{ 1 };
+		static const std::vector<size_t> zeroTwo{ 0,2 };
+		static const std::vector<size_t> three{ 3 };
+		static const std::vector<size_t> oneFour{ 1,4 };
+		static const std::vector<size_t> zeroFive{ 0,5 };
+		static const std::vector<size_t> zeroTwoSix{ 0,2,6 };
+
+		switch (totalPlayers)
+		{
+		case 2:
+			switch (rangeIndex)
+			{
+			case 0:
+				return empty;
+			default: //1
+				return zero;
+			}
+		case 3:
+			switch (rangeIndex)
+			{
+			case 0:
+			case 1:
+				return empty;
+			case 2:
+			case 4:
+				return zero;
+			case 3:
+				return one;
+			default: //5
+				return zeroTwo;
+			}
+		default: //4 {},{},{0},{},{1},{0},{0,2},{3},{1},{1,4},{0},{0,5},{0,2},{0,2,6}
+			switch (rangeIndex)
+			{
+			case 0:
+			case 1:
+			case 3:
+				return empty;
+			case 2:
+			case 5:
+			case 10:
+				return zero;
+			case 4:
+			case 8:
+				return one;
+			case 6:
+			case 12:
+				return zeroTwo;
+			case 7:
+				return three;
+			case 9:
+				return oneFour;
+			case 11:
+				return zeroFive;
+			default: //13
+				return zeroTwoSix;
+			}
+		}
+	}
 	inline const std::vector<size_t>& GetAllFromFoldRanges(size_t rangeIndex, int totalPlayers)
+	{
+		static const std::vector<size_t> empty{};
+		static const std::vector<size_t> zero{ 0 };
+		static const std::vector<size_t> two{ 2 };
+		static const std::vector<size_t> zeroOne{ 0,1 };
+		static const std::vector<size_t> zeroFour{ 0,4 };
+		static const std::vector<size_t> twoFive{ 2,5 };
+		static const std::vector<size_t> six{ 6 };
+
+
+		switch (totalPlayers)
+		{
+		case 2:
+			return empty;
+		case 3:
+			switch (rangeIndex)
+			{
+			case 0:
+			case 2:
+			default: //5
+				return empty;
+			case 1:
+			case 3:
+				return zero;
+			case 4:
+				return two;
+			}
+		default:
+			switch (rangeIndex)
+			{
+			case 0:
+			case 2:
+			case 6:
+			default:
+				return empty;
+			case 1:
+			case 4:
+			case 9:
+				return zero;
+			case 3:
+			case 7:
+				return zeroOne;
+			case 5:
+			case 11:
+				return two;
+			case 8:
+				return zeroFour;
+			case 10:
+				return twoFive;
+			case 12:
+				return six;
+			}
+		}
+	}
+
+	inline int GetToRange(size_t range, bool isAI, int totalPlayers)
 	{
 		switch (totalPlayers)
 		{
 		case 2:
-			return allFromFoldRanges2p[rangeIndex];
+			switch (range)
+			{
+			case 0:
+				switch (isAI)
+				{
+				case true:
+					return 1;
+				default:
+					return -1;
+				}
+			default:
+				return -1;
+			}
 		case 3:
-			return allFromFoldRanges3p[rangeIndex];
+			switch (range)
+			{
+			case 0:
+				switch (isAI)
+				{
+				case true:
+					return 2;
+				default:
+					return 1;
+				}
+			case 1:
+				switch (isAI)
+				{
+				case true:
+					return 3;
+				default:
+					return -1;
+				}
+			case 2:
+				switch (isAI)
+				{
+				case true:
+					return 5;
+				default:
+					return 4;
+				}
+			case 3:
+			case 4:
+			default:
+				return -1;
+			}
 		default:
-			return allFromFoldRanges4p[rangeIndex];
+			switch (range)
+			{
+			case 0:
+				switch (isAI)
+				{
+				case true:
+					return 2;
+				default:
+					return 1;
+				}
+			case 1:
+				switch (isAI)
+				{
+				case true:
+					return 4;
+				default:
+					return 3;
+				}
+			case 2:
+				switch (isAI)
+				{
+				case true:
+					return 6;
+				default:
+					return 5;
+				}
+			case 3:
+				switch (isAI)
+				{
+				case true:
+					return 7;
+				default:
+					return -1;
+				}
+			case 4:
+				switch (isAI)
+				{
+				case true:
+					return 9;
+				default:
+					return 8;
+				}
+			case 5:
+				switch (isAI)
+				{
+				case true:
+					return 11;
+				default:
+					return 10;
+				}
+			case 6:
+				switch (isAI)
+				{
+				case true:
+					return 13;
+				default:
+					return 12;
+				}
+			case 7:
+			case 8:
+			case 9:
+			case 10:
+			case 11:
+			case 12:
+			default:
+				return -1;
+			}
 		}
 	}
 
 	//**************
+	//**************
+	// Pot
 
 	inline float GetPotAfter(size_t range, const SolverParams& solParams, bool isAI)
 	{
@@ -214,8 +429,10 @@ namespace PokerUtils
 				case true:
 					return 2 * solParams.stackSize;
 				default:
-					return solParams.bb;
+					return solParams.stackSize + solParams.bb;
 				}
+			default:
+				throw std::invalid_argument("Invalid argument provided");
 			}
 		case 3:
 			switch (range)
@@ -226,7 +443,7 @@ namespace PokerUtils
 				case true:
 					return 2 * solParams.stackSize;
 				default:
-					return solParams.bb;
+					return solParams.stackSize + solParams.bb;
 				}
 			case 4:
 				switch (isAI)
@@ -234,7 +451,7 @@ namespace PokerUtils
 				case true:
 					return 2 * solParams.stackSize + solParams.sb;
 				default:
-					return solParams.bb + solParams.sb;
+					return solParams.stackSize + solParams.bb + solParams.sb;
 				}
 			case 5:
 				switch (isAI)
@@ -244,7 +461,8 @@ namespace PokerUtils
 				default:
 					return 2 * solParams.stackSize + solParams.bb;
 				}
-
+			default:
+				throw std::invalid_argument("Invalid argument provided");
 			}
 		case 4:
 			switch (range)
@@ -255,15 +473,15 @@ namespace PokerUtils
 				case true:
 					return 2 * solParams.stackSize;
 				default:
-					return solParams.bb;
+					return solParams.stackSize + solParams.bb;
 				}
 			case 8:
 				switch (isAI)
 				{
 				case true:
-					return 2 * solParams.stackSize + solParams.bb;
+					return 2 * solParams.stackSize + solParams.sb;
 				default:
-					return solParams.sb + solParams.bb;
+					return solParams.stackSize + solParams.sb + solParams.bb;
 				}
 			case 9:
 				switch (isAI)
@@ -279,7 +497,7 @@ namespace PokerUtils
 				case true:
 					return 2 * solParams.stackSize + solParams.sb;
 				default:
-					return solParams.sb + solParams.bb;
+					return solParams.stackSize + solParams.sb + solParams.bb;
 				}
 			case 11:
 				switch (isAI)
@@ -305,127 +523,14 @@ namespace PokerUtils
 				default:
 					return 3 * solParams.stackSize + solParams.bb;
 				}
+			default:
+				throw std::invalid_argument("Invalid argument provided");
 			}
 		}
 		throw std::invalid_argument("Invalid argument provided");
 	}
 
-	inline bool GetFromRange(size_t rangeIndex, size_t& fromIndex, int totalPlayers)
-	{
-		if (rangeIndex == 0)
-			return false;
-
-		switch (totalPlayers)
-		{
-		case 2:
-			fromIndex = fromRanges2p[rangeIndex];
-			break;
-		case 3:
-			fromIndex = fromRanges3p[rangeIndex];
-			break;
-		default:
-			fromIndex = fromRanges4p[rangeIndex];
-			break;
-		}
-		return true;
-	}
-
-	inline bool GetToRange(size_t i, size_t& nextIndex, bool isAI, int totalPlayers)
-	{
-		int tempIndex;
-		switch (isAI)
-		{
-		case true:
-			switch (totalPlayers)
-			{
-			case 2:
-				tempIndex = toAIRange2p[i];
-				break;
-			case 3:
-				tempIndex = toAIRange3p[i];
-				break;
-			default:
-				tempIndex = toAIRange4p[i];
-				break;
-			}
-			break;
-		default:
-			switch (totalPlayers)
-			{
-			case 2:
-				tempIndex = toFoldRange2p[i];
-				break;
-			case 3:
-				tempIndex = toFoldRange3p[i];
-				break;
-			default:
-				tempIndex = toFoldRange4p[i];
-				break;
-			}
-			break;
-		}
-		if (tempIndex < 0)
-			return false;
-
-		nextIndex = tempIndex;
-		return true;
-	}
-
-	inline bool IsFromAiRange(size_t rangeIndex, int totalPlayers)
-	{
-		switch (totalPlayers)
-		{
-		case 2:
-			return isFromAINode2p[rangeIndex];
-		case 3:
-			return isFromAINode3p[rangeIndex];
-		default:
-			return isFromAINode4p[rangeIndex];
-		}
-	}
-
-
-	inline const std::vector<size_t>& GetAllFromRanges(size_t rangeIndex, int totalPlayers)
-	{
-		switch (totalPlayers)
-		{
-		case 2:
-			return allFromAIRanges2p[rangeIndex];
-		case 3:
-			return allFromAIRanges3p[rangeIndex];
-		default:
-			return allFromAIRanges4p[rangeIndex];
-		}
-	}
-
-
-	inline unsigned int GetTotalRanges(int totalPlayers)
-	{
-		switch (totalPlayers)
-		{
-		case 4:
-			return 14;
-		case 3:
-			return 6;
-		default:
-			return 2;
-		}
-	}
-
 	inline float GetFoldLoss(size_t rangeIndex, const SolverParams& solParams)
-	{
-		switch (GetRangePosition(rangeIndex, solParams.totalPlayers))
-		{
-		case Position::SB:
-			return -solParams.sb;
-		case Position::BB:
-			return -solParams.bb;
-		default:
-			return 0;
-		}
-	}
-
-	inline float GetRangeAiSize(size_t rangeIndex, const SolverParams& solParams)
 	{
 		switch (solParams.totalPlayers)
 		{
@@ -433,52 +538,40 @@ namespace PokerUtils
 			switch (rangeIndex)
 			{
 			case 0:
-				return solParams.stackSize - solParams.sb;
-			default:
-				return solParams.stackSize - solParams.bb;
+				return solParams.sb;
+			default: //1
+				return solParams.bb;
 			}
 		case 3:
 			switch (rangeIndex)
 			{
 			case 0:
-				return solParams.stackSize;
+				return 0;
 			case 1:
 			case 2:
-				return solParams.stackSize - solParams.sb;
-			default:
-				return solParams.stackSize - solParams.bb;
+				return solParams.sb;
+			default: //3 4 5
+				return solParams.bb;
 			}
-		default:
+		default: //4
 			switch (rangeIndex)
 			{
 			case 0:
 			case 1:
 			case 2:
-				return solParams.stackSize;
+				return 0;
 			case 3:
 			case 4:
 			case 5:
 			case 6:
-				return solParams.stackSize - solParams.sb;
-			default:
-				return solParams.stackSize - solParams.bb;
+				return solParams.sb;
+			default: //7 8 9 10 11 12 13
+				return solParams.bb;
 			}
 		}
 	}
 
 
-	inline float CalcPotAfterAI(Position pos, float pot, const SolverParams& solverParams)
-	{
-		switch (pos)
-		{
-		case Position::SB:
-			return pot + solverParams.stackSize - solverParams.sb;
-		case Position::BB:
-			return pot + solverParams.stackSize - solverParams.bb;
-		default:
-			return 	pot + solverParams.stackSize;
-		}
-	}
 
 
 
@@ -486,22 +579,6 @@ namespace PokerUtils
 
 
 
-	inline void Init()
-	{
-		wrs_3Std_z95 = PokerUtils::GenerateMinWinrates<1000>(3, PokerUtils::z_95);
-		wrs_5Std_z95 = PokerUtils::GenerateMinWinrates<1000>(5, PokerUtils::z_95);
-		wrs_7Std_z95 = PokerUtils::GenerateMinWinrates<1000>(7, PokerUtils::z_95);
-		wrs_10Std_z95 = PokerUtils::GenerateMinWinrates<1000>(10, PokerUtils::z_95);
-		wrs_12Std_z95 = PokerUtils::GenerateMinWinrates<1000>(12, PokerUtils::z_95);
-		wrs_15Std_z95 = PokerUtils::GenerateMinWinrates<1000>(15, PokerUtils::z_95);
-
-		wrs_3Std_z99 = PokerUtils::GenerateMinWinrates<1000>(3, PokerUtils::z_99);
-		wrs_5Std_z99 = PokerUtils::GenerateMinWinrates<1000>(5, PokerUtils::z_99);
-		wrs_7Std_z99 = PokerUtils::GenerateMinWinrates<1000>(7, PokerUtils::z_99);
-		wrs_10Std_z99 = PokerUtils::GenerateMinWinrates<1000>(10, PokerUtils::z_99);
-		wrs_12Std_z99 = PokerUtils::GenerateMinWinrates<1000>(12, PokerUtils::z_99);
-		wrs_15Std_z99 = PokerUtils::GenerateMinWinrates<1000>(15, PokerUtils::z_99);
-	}
 
 
 }

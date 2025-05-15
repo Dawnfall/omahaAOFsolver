@@ -30,29 +30,44 @@ project "Solver"
         "phevalplo4.lib"
     }
 
-    filter "configurations:Debug"
+filter "configurations:Debug"
     libdirs 
     {
         "%{LibDirs.PHeval_d}"
     }
-    links
+    defines 
     {
-        "phevalplo4.lib"
+        "DEBUG",
+        "SOLVER_DEBUG"
     }
-    defines "SOLVER_DEBUG"
     runtime "Debug"
     symbols "On"
+    optimize "Off"
 
 filter "configurations:Release"
     libdirs 
     {
         "%{LibDirs.PHeval_r}"
     }
-    links
+    defines 
+    { 
+        "NDEBUG",
+        "SOLVER_RELEASE"
+    }
+    runtime "Release"
+    symbols "On" -- Enable debugging symbols for runtime inspection
+    optimize "Speed" -- Optimize for speed but allow some inspection
+
+filter "configurations:Deploy"
+    libdirs 
     {
-        
-    }    
-    defines "SOLVER_RELEASE"
+        "%{LibDirs.PHeval_r}"
+    }
+    defines
+    {
+        "NDEBUG",
+        "SOLVER_RELEASE"
+    } 
     runtime "Release"
     symbols "Off"        -- Disable debugging symbols
     optimize "Full"      -- Maximum optimization for deployment

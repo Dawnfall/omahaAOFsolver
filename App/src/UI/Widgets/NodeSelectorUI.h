@@ -11,16 +11,16 @@
 #include "LabelUI.h"
 #include "RadioButtonUI.h"
 
-class Application;
 class NodeSelectorUI:public WidgetUI
 {
 public:
-	NodeSelectorUI(RenderCursor& cursor, int w, int h, Application* app, Fl_Group* parentgroup);
+	NodeSelectorUI(RenderCursor& cursor, int w, int h, Fl_Group* parentgroup);
 	std::vector<URef<RadioButtonUI>> nodeButtons;
 	std::vector<URef<LabelUI>> nodeLabels;
 	std::vector<int> rangeIndices;
+	Fl_Group* m_parentGroup;
 
-	void Refresh(Fl_Group* parentGroup);
+	void Refresh();
 
 	RenderCursor GetStartCursor() override
 	{

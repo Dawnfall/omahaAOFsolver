@@ -1,14 +1,14 @@
 #include "Solution.h"
 #include "Solver/PokerUtils.h"
-
+#include "RandomGenerator.h"
 
 std::string Solution::GetRangeName(int rangeIndex)const
 {
 	return PokerUtils::GetRangeName(rangeIndex, PlayerCount);
 }
-std::tuple<Hand, float> Solution::GetRandomHandAndEv(int rangeIndex, std::minstd_rand& randGen)const
+std::tuple<Hand, float> Solution::GetRandomHandAndEv(int rangeIndex, RandomGenerator& randGen)const
 {
-	size_t randomHandIndex = PokerUtils::GetRandomHandFromRange(randGen);
+	size_t randomHandIndex = randGen.GetRandomHandFromRange();
 	return GetHandAndEv(rangeIndex, randomHandIndex);
 }
 std::tuple<Hand, float> Solution::GetHandAndEv(int node, int handIndex)const

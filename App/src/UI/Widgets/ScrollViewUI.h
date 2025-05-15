@@ -1,35 +1,20 @@
 #pragma once
 
-#include "RenderUtils.h"
-
 #include "Core.h"
-#include "Data/Solution.h"
+#include "FL/Fl_Scroll.H"
+#include <FL/fl_Box.h>
+#include "UI/RenderCursor.h"
+#include "UI/IDrawable.h"
 
-#include "WidgetUI.h"
-#include "LabelUI.h"
-#include "ButtonUI.h"
-#include "InputUI.h"
-
-#include "ScrollHandItemUI.h"
-class Application;
-class ScrollViewUI :public WidgetUI
+class ScrollViewUI :public Fl_Scroll
 {
+	std::vector<URef<IDrawable>> m_items;
+	Fl_Box* m_dummyContentBox=nullptr;
 public:
-	ScrollViewUI(RenderCursor& renderCursor, int w, int h, Application* app);
+	ScrollViewUI(RenderCursor& renderCursor, int w, int h);
 
-	Fl_Scroll* scrollView = nullptr;
-	std::vector<URef<ScrollHandItemUI>> scrollHands;
+	void UpdateItems(std::vector<URef<IDrawable>> items);
 
-	void RefreshRange();
-
-	RenderCursor GetStartCursor()override
-	{
-		RenderCursor cursor;
-		cursor.SetStartPos(m_posX, m_posY);
-		cursor.spacingX = 10;
-		cursor.spacingY = 10;
-		cursor.Reset();
-
-		return cursor;
-	}
+private:
+	void draw()override;
 };

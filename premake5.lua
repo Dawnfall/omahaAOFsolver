@@ -1,15 +1,15 @@
 workspace "Omaha AOF solver"
     architecture "x64"
-    configurations { "Debug", "Release" }
     startproject "App"
 
     configurations
     {
         "Debug",
-        "Release"
+        "Release",
+        "Deploy"
     }
 
-    outputDir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
+    outputDir = "%{cfg.buildcfg}"
     
     IncludeDirs = {}
     IncludeDirs["Solver"]="%{wks.location}/Solver/src"

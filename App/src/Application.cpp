@@ -38,15 +38,6 @@ void Application::RunSolver()
 		});
 }
 
-
-void Application::SaveSolution()
-{
-	if (m_solution == nullptr)
-		return;
-
-	//Solution::Serialize(window.GetSaveFolder(), *m_solution);
-}
-
 void Application::LoadSolution(const std::string& filePath)
 {
 	auto sol = Solution::Deserialize(filePath);
@@ -64,58 +55,87 @@ void Application::SetSolution(std::shared_ptr<Solution> solution)
 	if (solution == m_solution)
 		return;
 	m_solution = solution;
+	currentRange = 0;
+	m_filter = HandFilter::ParseFilter("");
+	FilterHands();
 
-	if (m_solution)
-	{
-		OnSolutionChange.Trigger();
-		SetNode(0);
-	}
-	else
-		OnSolutionChange.Trigger();
+	OnSolutionChange.Trigger();
 }
 
-void Application::SetNode(int nodeIndex)
+void Application::SetRange(int rangeIndex)
 {
-	if (m_solution == nullptr || currentNode == nodeIndex)
+	if (m_solution == nullptr || currentRange == rangeIndex)
 		return;
 
-	currentNode = nodeIndex;
+	currentRange = rangeIndex;
+	m_filter = HandFilter::ParseFilter("");
+	FilterHands();
+
 	OnRangeChange.Trigger();
+}
+
+void Application::SetFilter(URef<FilterNode> filter)
+{
+	if (filter == m_filter || !filter)
+		return;
+
+	m_filter = std::move(filter);
+	FilterHands();
+	OnFilterChange.Trigger();
 }
 
 bool Application::GetSolverParams(SolverParams& solParams)
 {
-	if (!window.GetBlinds(solParams.sb, solParams.bb))
+	if (!window.solverTab->GetBlinds(solParams.sb, solParams.bb))
 	{
 		RenderUtils::CreateAlert("Invalid blinds");
 		return false;
 	}
-	if (!window.GetMargin(solParams.margin))
+	if (!window.solverTab->GetMargin(solParams.margin))
 	{
 		RenderUtils::CreateAlert("Invalid margin");
 		return false;
 	}
-	if (!window.GetBoard(solParams.flop))
+	if (!window.solverTab->GetBoard(solParams.flop))
 	{
 		RenderUtils::CreateAlert("Invalid board");
 		return false;
 	}
-	solParams.totalPlayers = window.GetPlayerCount();
+	solParams.totalPlayers = window.solverTab->GetPlayerCount();
 
-	if (!window.GetThreads(solParams.threadCount))
+	if (!window.optionsTab->GetThreads(solParams.threadCount))
 	{
 		RenderUtils::CreateAlert("Invalid threads");
 		return false;
 	}
-	if (!window.GetChunkSize(solParams.chunkSize))
+	if (!window.optionsTab->GetChunkSize(solParams.chunkSize))
 	{
 		RenderUtils::CreateAlert("Invalid Chunk Size");
 		return false;
 	}
-	if (!window.GetSaveFolder(solParams.folder,sizeof(solParams.folder)))
+	if (!window.optionsTab->GetSaveFolder(solParams.folder, sizeof(solParams.folder)))
 	{
 		RenderUtils::CreateAlert("Invalid save folder");
 		return false;
 	}
 	return true;
+}
+
+void Application::FilterHands()
+{
+	filteredHands.clear();
+	filteredEvs.clear();
+
+	if (m_solution && currentRange >= 0)
+	{
+		for (int i = 0; i < m_solution->Hands.size() / 4; i++)
+		{
+			const auto& [hand, ev] = m_solution->GetHandAndEv(currentRange, i);
+			if (m_filter->Validate(hand))
+			{
+				filteredHands.emplace_back(hand);
+				filteredEvs.emplace_back(ev);
+			}
+		}
+	}
 }

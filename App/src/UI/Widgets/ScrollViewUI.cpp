@@ -1,49 +1,57 @@
 #include "ScrollViewUI.h"
-
 #include "RenderUtils.h"
 #include "Core.h"
 #include "Application.h"
 #include "Solver/PokerUtils.h"
 
-ScrollViewUI::ScrollViewUI(RenderCursor& renderCursor, int w, int h, Application* app) :
-	WidgetUI(renderCursor, w, h)
+#include "Filter/HandFilter.h"
+#include <FL/fl_draw.H>
+#include <FL/fl_Box.h>
+#include <FL/fl_draw.H>
+
+ScrollViewUI::ScrollViewUI(RenderCursor& cursor, int width, int height) :
+	Fl_Scroll(cursor.posX, cursor.posY, width, height)
 {
-	RenderCursor thisCursor = GetStartCursor();
+	type(Fl_Scroll::VERTICAL);
+	box(FL_BORDER_BOX); // Make the scroll visible
+	color(FL_WHITE);    // Set a background color
 
-	scrollView = new Fl_Scroll(thisCursor.posX, thisCursor.posY, m_width, m_height);
-	scrollView->type(Fl_Scroll::VERTICAL);
-	scrollView->box(FL_BORDER_BOX); // Make the scroll visible
-	scrollView->color(FL_WHITE);    // Set a background color
-	scrollView->end();
-	thisCursor.MoveX(m_width, m_height);
-	thisCursor.NextRow();
-
+	m_dummyContentBox = new Fl_Box(0, 0, this->w(), this->h());
+	m_dummyContentBox->hide();
+	add(m_dummyContentBox);
+	end();
+	cursor.MoveX(width, height);
 }
 
-void ScrollViewUI::RefreshRange()
+void ScrollViewUI::UpdateItems(std::vector<URef<IDrawable>> items)
 {
-	scrollHands.clear();
-	scrollView->clear();
+	m_items = std::move(items);
+	m_dummyContentBox->resize(0, 0, w(), m_items.size() * Constants::scrollitemHeight);
+	redraw();
+}
 
-	RenderCursor thisCursor = GetStartCursor();
-	//thisCursor.MoveX(30, 44);
-	//thisCursor.NextRow();
+void ScrollViewUI::draw()
+{
+	fl_color(FL_WHITE); // or use this->color() for the widget's set color
+	fl_rectf(x(), y(), w()-Fl::scrollbar_size(), h());
 
-	Application* app = Application::GetInstance();
-	if (app->currentNode != -1)
+	Fl_Scroll::draw(); // draw scrollbars and clip area
+
+	int first = yposition() / Constants::scrollitemHeight;
+	int last = first + h() / Constants::scrollitemHeight;
+
+	first = std::max(0, first);
+	last = std::min(last, static_cast<int>(m_items.size()));
+
+	for (int i = first; i < last; ++i)
 	{
-		for (int i = 0; i < PokerUtils::rangeSize; i++)
-		{
-			const auto& [hand, evRef] = app->m_solution->GetHandAndEv(app->currentNode, i);
-
-			scrollHands.emplace_back(std::make_unique<ScrollHandItemUI>(thisCursor, 300, 30, hand,evRef));
-			scrollView->add(scrollHands.back()->m_itemGroup);
-			thisCursor.NextRow();
-		}
-		scrollView->end();
+		int iy = this->y() + (i - first) * Constants::scrollitemHeight;
+		m_items[i]->Draw(x(), iy, w() - Fl::scrollbar_size(), Constants::scrollitemHeight);
 	}
-	scrollView->redraw();
 }
+
+
+
 
 
 
