@@ -16,21 +16,28 @@ Because it is designed to run on typical consumer hardware (with limited CPU and
 The strategy viewer allows users to **load precomputed solutions** and browse strategies for different spots.  
 It also provides **hand filtering** options to narrow down and study specific scenarios.
 
+## 🚀 Usage
+
+### 🔹 Precompiled Build
+If you just want to run the application, a **precompiled build** is available inside the `Build/` folder.
+
+### 🔹 From Source
+1. Clone this repository.  
+2. Make sure [vcpkg](https://vcpkg.io/en/) is installed.  
+3. Run:
+   ``` 
+   vcpkg install
+4. Run: `GenerateSolution.bat` to build visual studio 2022 project files.
+
 ## Algorithm
 
 Each player is assigned an entire hand range, along with a single value representing the **expected value (EV)** of going all-in.  
 If this value is below zero, folding is preferred (with adjusted thresholds for the small blind and big blind).  
 
-For every hand in every player’s range, the algorithm calculates the **EV of pushing** against the opponents’ ranges.  
-This is done by simulating multiple hand outcomes.  
+For every hand in every player’s range, the algorithm calculates the **EV of pushing** against the opponents’ ranges. This is done by simulating multiple hand outcomes.  
 After each iteration, the EV estimates for hands move closer to their true values.  
 
-Because of the large number of combinations, this simulation step is the **main computational bottleneck**.  
-
-The main challenge is that **4-card Omaha has vastly more possible hands than Texas Hold’em** (270,725 vs. 1,326).  
-To calculate reasonable equity for each hand, **hundreds of iterations** (e.g., 500+) are required.  
-On top of that, multiple possible spots exist (e.g., 14 distinct situations in a 4-player game).  
-A naive approach would therefore require days of computation to converge to an optimal solution.  
+Because of the large number of combinations, this simulation step is the **main computational bottleneck**. The main challenge is that **4-card Omaha has vastly more possible hands than Texas Hold’em** (270,725 vs. 1,326). To calculate reasonable equity for each hand hundreds of iterations are required. On top of that, multiple possible spots exist (e.g., 14 distinct situations in a 4-player game). 
 
 To make the solver practical, several **optimizations and concessions** were introduced:
 
