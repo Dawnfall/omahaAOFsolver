@@ -23,8 +23,6 @@ workspace "Omaha AOF solver"
     LibDirs["VCPKG_D"]="%{wks.location}/vcpkg_installed/x64-windows/debug/lib"
     LibDirs["VCPKG_R"]="%{wks.location}/vcpkg_installed/x64-windows/lib"
 
-
-
     include "Solver/solver_build.lua"
     include "App/app_build.lua"
     include "Tests/tests_build.lua"

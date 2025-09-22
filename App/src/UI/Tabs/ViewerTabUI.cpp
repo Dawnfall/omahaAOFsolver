@@ -34,8 +34,6 @@ ViewerTabUI::ViewerTabUI()
 	cursor.NextRow();
 
 	cursor.SetStartPos(400, 35);
-	cursor.spacingX = 10;
-	cursor.spacingY = 10;
 	cursor.Reset();
 
 	m_nodesTitleLabel = std::make_unique<LabelUI>(cursor, 50, Constants::el_height, "Nodes");

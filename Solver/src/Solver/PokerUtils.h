@@ -40,7 +40,7 @@ namespace PokerUtils
 	const std::array<std::array<float, 1000>*, 14> minWrs4p_z99 = { &wrs_7Std_z99,&wrs_5Std_z99,&wrs_10Std_z99,&wrs_3Std_z99,&wrs_7Std_z99,&wrs_7Std_z99,&wrs_12Std_z99,&wrs_5Std_z99,&wrs_5Std_z99,&wrs_10Std_z99,&wrs_5Std_z99,&wrs_10Std_z99,&wrs_10Std_z99,&wrs_15Std_z99 };
 
 	template<size_t N>
-	inline std::array<float, N> GenerateMinWinrates(float stdDevPerHand, float z)
+	inline std::array<float, N> GenerateMinWinrates(float stdDevPerHand, float z) //threshold winrates for certain confidence that hand is above or below 0 EV.
 	{
 		std::array<float, N> reqWinrates{ -1 };
 		for (size_t n = 1; n <= N - 1; ++n)
@@ -73,12 +73,6 @@ namespace PokerUtils
 	{
 		switch (totalPlayers)
 		{
-			//case 2: //many iters ... 8s7s6d ....cca 300s
-			//	repeatIters = 20;
-			//	minHandIters = { 5,5,5,5,5,20,20,20,20,20,50,50,50,50,50,50,50,100,200,500 };
-			//	maxHandIters = { 10,10,10,10,10,50,50,50,50,50,100,100,100,100,100,250,250,500,1000,2500 };
-			//	is99Conf = { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1 };
-			//	break;
 
 		case 2: //less iters, more hands...7s6s5d ... cca 350s boljsa resitev
 			repeatIters = 5;
@@ -92,16 +86,6 @@ namespace PokerUtils
 			maxHandIters = { 10,50,250,2500,5000 };
 			is99Conf = { 0,0,0,0,1 };
 			break;
-
-
-
-
-
-
-
-
-
-
 		default: //4
 			repeatIters = 15;
 			minHandIters = { 5,10,10,10,20,20,20,50,50,50,100,100,100,100,100 };
@@ -291,6 +275,7 @@ namespace PokerUtils
 		}
 	}
 
+	//finds next player index based on action
 	inline int GetToRange(size_t range, bool isAI, int totalPlayers)
 	{
 		switch (totalPlayers)
@@ -570,15 +555,5 @@ namespace PokerUtils
 			}
 		}
 	}
-
-
-
-
-
-
-
-
-
-
 
 }

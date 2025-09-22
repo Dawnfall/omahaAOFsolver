@@ -22,9 +22,8 @@ void Solver::SolveAsync(const SolverParams& solverParams, std::function<void(con
 			};
 
 		std::vector<std::thread> threads;
-		for (unsigned int i = 1; i < solverParams.threadCount; ++i)
+		for (unsigned int i = 0; i < solverParams.threadCount; ++i)
 			threads.emplace_back(threadTask, std::ref(randGens[i]));
-		threadTask(randGens[0]); //this thread also does the job
 
 		for (auto& thread : threads)
 			thread.join();
@@ -131,16 +130,18 @@ float Solver::CalcBbEvForAiHand(size_t rangeIndex, const std::vector<uint8_t>& r
 	{
 		std::unordered_set<uint8_t> removed = removedCards;
 		std::vector<size_t> aiHands = hands;
-		for (const size_t prevAIRange : PokerUtils::GetAllFromAiRanges(rangeIndex, solParams.totalPlayers))
+		for (const size_t prevAIRange : PokerUtils::GetAllFromAiRanges(rangeIndex, solParams.totalPlayers)) //determine hands for previous players
 		{
-			int prevHandIndex = Solver::ForcePickHand(range, evs, prevAIRange, solverData.totalRanges, removed, randGen, true);
+			int prevHandIndex = Solver::ForcePickHand(range, evs, prevAIRange, solverData.totalRanges, removed, randGen, true); //previous players are always all in
 			aiHands.emplace_back(prevHandIndex);
 			removed.insert(range.begin() + prevHandIndex * 4, range.begin() + prevHandIndex * 4 + 4);
 		}
 
-		if (currRepeat > 4)
+		if (currRepeat > 4) //only matters after EV has been at least somewhat balanced
 		{
-			for (const size_t prevFoldRange : PokerUtils::GetAllFromFoldRanges(rangeIndex, solParams.totalPlayers))
+			//previous players that folded still pick hand! so that certain cards are removed more often
+			// for example if board is 335, players never fold 3, so when they do...3 becomes more likely for further players
+			for (const size_t prevFoldRange : PokerUtils::GetAllFromFoldRanges(rangeIndex, solParams.totalPlayers)) 
 			{
 				int prevHandIndex = Solver::ForcePickHand(range, evs, prevFoldRange, solverData.totalRanges, removed, randGen, false);
 				removed.insert(range.begin() + prevHandIndex * 4, range.begin() + prevHandIndex * 4 + 4);
@@ -150,7 +151,7 @@ float Solver::CalcBbEvForAiHand(size_t rangeIndex, const std::vector<uint8_t>& r
 		size_t currRange = rangeIndex;
 		int nextRange = static_cast<int>(currRange);
 		bool isAI = true;
-		while (true)
+		while (true) //find hands for further players
 		{
 			nextRange = PokerUtils::GetToRange(currRange, isAI, solParams.totalPlayers);
 			if (nextRange == -1)
@@ -170,9 +171,9 @@ float Solver::CalcBbEvForAiHand(size_t rangeIndex, const std::vector<uint8_t>& r
 
 		float pot = PokerUtils::GetPotAfter(currRange, solParams, isAI);
 		float ev = CalculateEquityOnFlop(aiHands, range, solParams.flop, turnAndRiver, removed, randGen);
-		bbEv += ev * pot - solParams.stackSize;
+		bbEv += ev * pot - solParams.stackSize; //sb and bb need adjustmend
 
-		if (handIter >= solverData.minHandIters[currRepeat] && handIter % 5 == 0)
+		if (handIter >= solverData.minHandIters[currRepeat] && handIter % 5 == 0) //optimization for big winners/loosers
 		{
 			float currEv = bbEv / handIter;
 			if (std::abs(currEv) > PokerUtils::GetMinWinrate(rangeIndex, solParams.totalPlayers, handIter, solverData.is99Conf[currRepeat]))

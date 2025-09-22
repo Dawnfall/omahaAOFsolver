@@ -26,11 +26,14 @@ namespace Solver
 		PokerUtils::wrs_15Std_z99 = PokerUtils::GenerateMinWinrates<1000>(15, PokerUtils::z_99);
 	}
 
-	inline float CalcEqOfHand1(const std::vector<size_t>& handIndices, const std::vector<uint8_t>& handRange, const Board_F& flop, const std::array<uint8_t, 2>& turnAndRiver);
 
 	float CalcBbEvForAiHand(size_t nodeIndex, const std::vector<uint8_t>& range, const std::vector<float>& evs, const SolverParams& solParams, SolverData& solverData, const std::unordered_set<uint8_t>& removedCards, const std::vector<size_t>& hands, Board_TR& turnAndRiver, RandomGenerator& randGen, size_t currRepeat);
 
-	inline float CalculateEquityOnFlop(const std::vector<size_t>& handIndices, const std::vector<uint8_t>& ranges, const Board_F& flop, Board_TR& turnAndRiver, const std::unordered_set<uint8_t> removedCards, RandomGenerator& randGen);
+	//deal turn and river and calculate equity for first player
+	float CalculateEquityOnFlop(const std::vector<size_t>& handIndices, const std::vector<uint8_t>& ranges, const Board_F& flop, Board_TR& turnAndRiver, const std::unordered_set<uint8_t> removedCards, RandomGenerator& randGen);
+	
+	//calculates equity of first player
+	float CalcEqOfHand1(const std::vector<size_t>& handIndices, const std::vector<uint8_t>& handRange, const Board_F& flop, const std::array<uint8_t, 2>& turnAndRiver);
 
 	std::tuple<std::vector<uint8_t>, std::vector<float>> BuildRangeAndEvs(const SolverParams& solParams, SolverData& solverData);//, std::minstd_rand& randGen);
 

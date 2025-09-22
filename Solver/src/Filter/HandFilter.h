@@ -45,11 +45,12 @@ namespace HandFilter
 			{
 				//currFilter = currFilter->parentFilter->AddChild();
 
-				//i += 1;
+				i += 1;
 			}
 			else if (currChar == ')')
 			{
 				/*	currFilter = currFilter->parentFilter->AddChild();*/
+				i += 1;
 			}
 			else if (ranks.contains(currChar))
 			{

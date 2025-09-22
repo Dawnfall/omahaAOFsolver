@@ -30,9 +30,4 @@ private:
 	std::uniform_int_distribution<> rangeDist;
 	std::uniform_int_distribution<> deckDist;
 	std::uniform_real_distribution<> evRandDist;;
-
-
-
-
-
 };

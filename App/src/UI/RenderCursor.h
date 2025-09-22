@@ -16,8 +16,8 @@ public:
 
 	void Reset()
 	{
-		posX = _posX;
-		posY = _posY;
+		posX = _posX + spacingX;
+		posY = _posY + spacingY;
 	}
 
 	void MoveX(int x, int h)
