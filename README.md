@@ -87,9 +87,9 @@ To make the solver practical, several **optimizations and concessions** were int
 hand.  
   For example, whether a hand has EV = +0.01 or EV = +1.0, both are clear all-ins. The stronger(or weaker) a hand is, less iterations are needed to determine if hand is all in.
 
-  During equity calculation, the solver continuously checks if a hand’s EV is already above or below a certain threshold. If the result is decisive, further simulation for that hand stops early.  
+  During equity calculation, the solver continuously checks if a hand’s EV is already above or below a certain threshold and stoping early.  
 
-  This significantly reduces solving time, but may also introduce small anomalies. Some hands can be misclassified if they converge too early, for that reason, results should always be compared against *similar hands*.
+  This significantly reduces solving time, but may also introduce small anomalies. Some hands can be misclassified if they converge too early, for that reason, results should always be compared against similar hands.
 
 ## Examples
 
