@@ -12,18 +12,14 @@ void Solver::SolveAsync(const SolverParams& solverParams, std::function<void(con
 
 		SolverData solverData(solverParams);
 
-		std::vector<RandomGenerator> randGens;
-		for (unsigned int i = 0; i < solverParams.threadCount; i++)
-			randGens.emplace_back(RandomGenerator());
-
 		auto [range, evs] = BuildRangeAndEvs(solverParams, solverData);
-		auto threadTask = [&solverParams, &solverData, &range, &evs](RandomGenerator& randGen) {
-			ExecuteThreadTask(solverParams, solverData, range, evs, randGen);
+		auto threadTask = [&solverParams, &solverData, &range, &evs]() {
+			ExecuteThreadTask(solverParams, solverData, range, evs);
 			};
 
 		std::vector<std::thread> threads;
 		for (unsigned int i = 0; i < solverParams.threadCount; ++i)
-			threads.emplace_back(threadTask, std::ref(randGens[i]));
+			threads.emplace_back(threadTask);
 
 		for (auto& thread : threads)
 			thread.join();
@@ -45,9 +41,10 @@ void Solver::SolveAsync(const SolverParams& solverParams, std::function<void(con
 }
 
 void Solver::ExecuteThreadTask(const SolverParams& solverParams, SolverData& solverData,
-	const std::vector<uint8_t>& range, std::vector<float>& evs,
-	RandomGenerator& randGen)
+	const std::vector<uint8_t>& range, std::vector<float>& evs)
 {
+	thread_local RandomGenerator randGen;
+
 	Board_TR turnAndRiver;
 	std::unordered_set<uint8_t> removedFlop{ solverParams.flop[0], solverParams.flop[1], solverParams.flop[2] };
 
@@ -141,7 +138,7 @@ float Solver::CalcBbEvForAiHand(size_t rangeIndex, const std::vector<uint8_t>& r
 		{
 			//previous players that folded still pick hand! so that certain cards are removed more often
 			// for example if board is 335, players never fold 3, so when they do...3 becomes more likely for further players
-			for (const size_t prevFoldRange : PokerUtils::GetAllFromFoldRanges(rangeIndex, solParams.totalPlayers)) 
+			for (const size_t prevFoldRange : PokerUtils::GetAllFromFoldRanges(rangeIndex, solParams.totalPlayers))
 			{
 				int prevHandIndex = Solver::ForcePickHand(range, evs, prevFoldRange, solverData.totalRanges, removed, randGen, false);
 				removed.insert(range.begin() + prevHandIndex * 4, range.begin() + prevHandIndex * 4 + 4);

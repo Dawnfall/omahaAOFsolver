@@ -1,13 +1,13 @@
 #pragma once
 #include <string>
 #include <unordered_set>
+#include <filesystem>
+
 
 namespace Constants
 {
 	//************
 	// Images
-	const std::string cardsImageFolder = "F:/Programiranje/C++/Omaha_AOF_solver/Assets/Cards_classic/c01.png";
-
 	const std::unordered_set<char> rankSet = { '2','3','4','5','6','7','8','9','T','J','Q','K','A' };
 	const std::unordered_set<char> suitSet = { 's','c','d','h' };
 
@@ -62,10 +62,11 @@ namespace Constants
 	const std::string sb_default = "0.5";
 	const std::string bb_default = "1.0";
 	const std::string margin_default = "0.1";
-	const std::string saveFolder_default = "F:/Programiranje/Test Data/Solver";
+	const std::string saveFolder_default = "";// "F:/Programiranje/Test Data/Solver";
 	const std::string repeatIter_default = "1";
 	const std::string threadCount_default = "16";
 	const std::string chunkSize_default = "250";
 	const std::string perHandIter_default = "1";
 	const bool saveAutomatic_default = true;
+
 }

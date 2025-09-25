@@ -40,8 +40,7 @@ namespace Solver
 	void SolveAsync(const SolverParams& solverParams, std::function<void(const SolverParams&, SolverResult)> callback);
 
 	void ExecuteThreadTask(const SolverParams& solverParams, SolverData& solverData,
-		const std::vector<uint8_t>& range, std::vector<float>& evs,
-		RandomGenerator& randGen);
+		const std::vector<uint8_t>& range, std::vector<float>& evs);
 
 	// returns an index of random hand in range, removing used cards
 	inline int GetRandomHand(const std::vector<uint8_t>& range, const std::unordered_set<uint8_t>& removedCards, RandomGenerator& randGen)

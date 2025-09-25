@@ -1,6 +1,7 @@
 #include "OptionsTabUI.h"
 #include "UI/RenderCursor.h"
 #include "Constants.h"
+#include "Utils.h"
 
 #include "FL/Fl_Group.H"
 #include "UI/Widgets/LabelUI.h"
@@ -24,7 +25,7 @@ OptionsTabUI::OptionsTabUI()
 	// Save
 
 	saveDirLabel = std::make_unique <LabelUI>(cursor, 50, Constants::el_height, Constants::saveDir_label);
-	saveInput = std::make_unique<InputUI>(cursor, 150, Constants::el_height, Constants::saveFolder_default);
+	saveInput = std::make_unique<InputUI>(cursor, 150, Constants::el_height, Utils::GetExecutableDir().string());
 	cursor.NextRow();
 
 	//***********

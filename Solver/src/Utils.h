@@ -1,8 +1,12 @@
 #pragma once
 #include "Core.h"
 
+#include <filesystem>
+
 namespace Utils
 {
+	std::filesystem::path GetExecutableDir();
+
 	template <typename T, std::size_t N>
 	bool ContainsAny(const std::array<T, N>& array, const std::unordered_set<T>& removedItems)
 	{
