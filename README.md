@@ -29,6 +29,42 @@ If you just want to run the application, a **precompiled build** is available in
    vcpkg install
 4. Run: `GenerateSolution.bat` to build visual studio 2022 project files.
 
+## Instructions
+
+### Solver
+
+**Inputs (under Solver tab):**
+
+- **Board** – flop situation.  
+- **SB / BB** – small blind and big blind sizes.  
+- **Margin** - threshold (in BB) where all-in is still preferable over fold.  
+  - Example: `0.2` margin means hands with `EV > -0.2` are still pushed.  
+  - Useful for promotions often associated with this game (e.g., Fortune Jackpot, where margin ≈ `0.1` is typical).
+ - **Players** – number of players to solve for.  
+    - More players = longer solver time.  
+    - On a 16-core/16-thread machine:  
+    - 2 players → ~5 min  
+    - 3 players → ~25 min  
+    - 4 players → ~40 min
+
+**Options (under Options tab):**
+
+- **SaveDir** – save directory for solutions.  
+  - Solutions are stored as:  
+    ```
+    [board]_[playerCount]p.sol
+    ```
+- **Threads** – number of threads to use (max = number of CPU cores).  
+- **Chunk** – experimental, controls the chunk size each thread processes.  
+
+### Viewer
+
+- **Load** – load a solution file.  
+- **Nodes** – load a sub-solution for a specific situation (e.g., **BB vs BU+SB** means solutions for BB facing BU going All-in and BU calling).  
+- **Filtering** – basic filtering for cards, suits, and logical operators:  
+  - Example: AK,QQ:ss:!sss → every AK or QQ with two spades, but not three spades.  
+- **Trainer** – experimental mode that enables training for the current spot.  
+
 ## Algorithm
 
 Each player is assigned an entire hand range, along with a single value representing the **expected value (EV)** of going all-in.  
