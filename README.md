@@ -31,7 +31,7 @@ If you just want to run the application, a **precompiled build** is available in
 
 ## Instructions
 
-### Solver
+### 🔹 Solver
 
 **Inputs (under Solver tab):**
 
@@ -43,9 +43,9 @@ If you just want to run the application, a **precompiled build** is available in
  - **Players** – number of players to solve for.  
     - More players = longer solver time.  
     - On a 16-core/16-thread machine:  
-    - 2 players → ~5 min  
-    - 3 players → ~25 min  
-    - 4 players → ~40 min
+      - 2 players ~ 5 min
+      - 3 players ~ 25 min  
+      - 4 players ~ 40 min
 
 **Options (under Options tab):**
 
@@ -57,7 +57,7 @@ If you just want to run the application, a **precompiled build** is available in
 - **Threads** – number of threads to use (max = number of CPU cores).  
 - **Chunk** – experimental, controls the chunk size each thread processes.  
 
-### Viewer
+### 🔹 Viewer
 
 - **Load** – load a solution file.  
 - **Nodes** – load a sub-solution for a specific situation (e.g., **BB vs BU+SB** means solutions for BB facing BU going All-in and BU calling).  
@@ -77,7 +77,7 @@ Because of the large number of combinations, this simulation step is the **main 
 
 To make the solver practical, several **optimizations and concessions** were introduced:
 
-  - **Flat data layout** – all data is stored in a single contiguous vector, and accessed via indices. This improves cache locality and allows much faster data retrieval compared to scattered structures.
+- **Flat data layout** – all data is stored in a single contiguous vector, and accessed via indices. This improves cache locality and allows much faster data retrieval compared to scattered structures.
 
 - **Parallelization** – since each hand in a range is independent of the others,  
   the computation can be split across multiple threads.  
