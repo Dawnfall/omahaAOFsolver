@@ -16,12 +16,12 @@ Because it is designed to run on typical consumer hardware (with limited CPU and
 The strategy viewer allows users to **load precomputed solutions** and browse strategies for different spots.  
 It also provides **hand filtering** options to narrow down and study specific scenarios.
 
-## 🚀 Usage
+## Usage
 
-### 🔹 Precompiled Build
+### Precompiled Build
 If you just want to run the application, a **precompiled build** is available inside the `Build/` folder.
 
-### 🔹 From Source
+### From Source
 1. Clone this repository.  
 2. Make sure [vcpkg](https://vcpkg.io/en/) is installed.  
 3. Run:
@@ -31,7 +31,7 @@ If you just want to run the application, a **precompiled build** is available in
 
 ## Instructions
 
-### 🔹 Solver
+### Solver
 
 **Inputs (under Solver tab):**
 
@@ -57,7 +57,7 @@ If you just want to run the application, a **precompiled build** is available in
 - **Threads** – number of threads to use (max = number of CPU cores).  
 - **Chunk** – experimental, controls the chunk size each thread processes.  
 
-### 🔹 Viewer
+### Viewer
 
 - **Load** – load a solution file.  
 - **Nodes** – load a sub-solution for a specific situation (e.g., **BB vs BU+SB** means solutions for BB facing BU going All-in and BU calling).  
