@@ -19,15 +19,14 @@ It also provides **hand filtering** options to narrow down and study specific sc
 ## Usage
 
 ### Precompiled Build
-If you just want to run the application, a **precompiled build** is available inside the `Build/` folder.
+If you just want to run the application, a **Precompiled Build** is available inside the `Examples/` folder.
 
 ### From Source
-1. Clone this repository.  
-2. Make sure [vcpkg](https://vcpkg.io/en/) is installed.  
+1. Clone this repository. Project is CMake integrated project, just open it as CMake project inside Visual Studio 2026
+2. Make sure [vcpkg](https://vcpkg.io/en/) is installed and VCPKG_R added to user variables
 3. Run:
    ``` 
    vcpkg install
-4. Run: `GenerateSolution.bat` to build visual studio 2022 project files.
 
 ## Instructions
 
@@ -93,9 +92,9 @@ hand.
 
 ## Examples
 
-![Solver](Examples/solver.png)
+![Solver](Examples/Images/solver.png)
 
-![Viewer](Examples/viewer.png)
+![Viewer](Examples/Images/viewer.png)
 
 ## Dependecies
 
@@ -104,9 +103,6 @@ hand.
 
 - [**FLTK**](https://www.fltk.org/)  
   Lightweight, cross-platform **GUI toolkit**, used for UI.
-
-- [**Premake**](https://premake.github.io/)  
-  Flexible **build configuration tool**, used to generate project files.
 
 - [**vcpkg**](https://vcpkg.io/en/)  
   Microsoft’s **C++ package manager**, used to fetch and manage third-party libraries consistently across platforms.

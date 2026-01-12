@@ -2,6 +2,7 @@
 vcpkg_installed/
 bin/
 bin-int/
+build/
 
 # User-specific files
 *.user
