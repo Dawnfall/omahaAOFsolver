@@ -1,0 +1,34 @@
+{
+  "version": 4,
+  "configurePresets": [
+    {
+      "name": "vs2026",
+      "hidden": false,
+      "generator": "Visual Studio 18 2026",
+      "binaryDir": "${sourceDir}/build",
+      "cacheVariables": {
+        "CMAKE_GENERATOR_PLATFORM": "x64",
+        "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_R}/scripts/buildsystems/vcpkg.cmake", // using VCPKG_ROOT causes VS to override and doesnt work ?!?
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "CMAKE_CONFIGURATION_TYPES": "Debug;RelWithDebInfo;Release"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "Debug",
+      "configurePreset": "vs2026",
+      "configuration": "Debug"
+    },
+    {
+      "name": "RelWithDebInfo",
+      "configurePreset": "vs2026",
+      "configuration": "RelWithDebInfo"
+    },
+    {
+      "name": "Release",
+      "configurePreset": "vs2026",
+      "configuration": "Release"
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+    "version": 1,
+    "revision": 0,
+    "rules": [
+        {
+            "primary-output": "SolverApp.dir\\Debug\\OptionsTabUI.obj",
+            "outputs": [
+                "D:\\Programiranje\\C++\\omahaAOFsolver\\build\\SolverApp\\SolverApp.dir\\Debug\\vc145.pdb",
+                "SolverApp.dir\\Debug\\"
+            ],
+            "requires": []
+        }
+    ]
+}

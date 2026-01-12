@@ -1,0 +1,4 @@
+D:/Programiranje/C++/omahaAOFsolver/build/CMakeFiles/ALL_BUILD.dir
+D:/Programiranje/C++/omahaAOFsolver/build/CMakeFiles/ZERO_CHECK.dir
+D:/Programiranje/C++/omahaAOFsolver/build/SolverLib/CMakeFiles/SolverLib.dir
+D:/Programiranje/C++/omahaAOFsolver/build/SolverApp/CMakeFiles/SolverApp.dir

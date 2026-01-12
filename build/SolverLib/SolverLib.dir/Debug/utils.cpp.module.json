@@ -1,0 +1,14 @@
+{
+    "version": 1,
+    "revision": 0,
+    "rules": [
+        {
+            "primary-output": "SolverLib.dir\\Debug\\Utils.obj",
+            "outputs": [
+                "D:\\Programiranje\\C++\\omahaAOFsolver\\build\\bin\\Debug-Windows-x64\\SolverLib.pdb",
+                "SolverLib.dir\\Debug\\"
+            ],
+            "requires": []
+        }
+    ]
+}

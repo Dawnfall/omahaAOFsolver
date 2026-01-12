@@ -1,0 +1,13 @@
+{
+    "version": 1,
+    "revision": 0,
+    "rules": [
+        {
+            "primary-output": "SolverApp.dir\\Release\\main.obj",
+            "outputs": [
+                "SolverApp.dir\\Release\\"
+            ],
+            "requires": []
+        }
+    ]
+}

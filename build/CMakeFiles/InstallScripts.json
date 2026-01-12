@@ -1,0 +1,9 @@
+{
+	"InstallScripts" : 
+	[
+		"D:/Programiranje/C++/omahaAOFsolver/build/cmake_install.cmake",
+		"D:/Programiranje/C++/omahaAOFsolver/build/SolverLib/cmake_install.cmake",
+		"D:/Programiranje/C++/omahaAOFsolver/build/SolverApp/cmake_install.cmake"
+	],
+	"Parallel" : false
+}
